@@ -1,8 +1,10 @@
 import { Suspense } from "react"
+import Image from "next/image"
 
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
+import { ShoppingBag, User } from "@medusajs/icons"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
@@ -28,31 +30,40 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
+              className="flex items-center gap-x-2 hover:opacity-80 transition-opacity"
               data-testid="nav-store-link"
             >
-              Medusa Store
+              <Image
+                src="/logo.png"
+                alt="CeedMart"
+                width={36}
+                height={36}
+                className="h-9 w-9"
+              />
+              <span className="text-ceedmart-navy font-bold text-xl tracking-tight hidden small:block">
+                Ceedmart
+              </span>
             </LocalizedClientLink>
           </div>
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
             <div className="hidden small:flex items-center gap-x-6 h-full">
               <LocalizedClientLink
-                className="hover:text-ui-fg-base"
+                className="hover:text-ceedmart-navy"
                 href="/account"
                 data-testid="nav-account-link"
               >
-                Account
+                <User className="w-6 h-6" />
               </LocalizedClientLink>
             </div>
             <Suspense
               fallback={
                 <LocalizedClientLink
-                  className="hover:text-ui-fg-base flex gap-2"
+                  className="hover:text-ceedmart-navy"
                   href="/cart"
                   data-testid="nav-cart-link"
                 >
-                  Cart (0)
+                  <ShoppingBag className="w-6 h-6" />
                 </LocalizedClientLink>
               }
             >

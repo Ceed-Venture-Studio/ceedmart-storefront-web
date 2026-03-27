@@ -1,7 +1,7 @@
 "use client"
 
 import { Popover, PopoverPanel, Transition } from "@headlessui/react"
-import { ArrowRightMini, XMark } from "@medusajs/icons"
+import { ArrowRightMini, BarsThree, XMark } from "@medusajs/icons"
 import { Text, clx, useToggleState } from "@medusajs/ui"
 import { Fragment } from "react"
 
@@ -13,6 +13,8 @@ import { Locale } from "@lib/data/locales"
 
 const SideMenuItems = {
   Home: "/",
+  "Whole Foods": "/store/wholefoods",
+  "Tech Store": "/store/tech",
   Store: "/store",
   Account: "/account",
   Cart: "/cart",
@@ -39,7 +41,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                   data-testid="nav-menu-button"
                   className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base"
                 >
-                  Menu
+                  <BarsThree className="w-6 h-6" />
                 </Popover.Button>
               </div>
 
@@ -126,7 +128,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         />
                       </div>
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} Medusa Store. All rights
+                        © {new Date().getFullYear()} CeedMart. All rights
                         reserved.
                       </Text>
                     </div>

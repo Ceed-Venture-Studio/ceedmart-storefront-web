@@ -34,6 +34,26 @@ module.exports = {
           80: "#1F2937",
           90: "#111827",
         },
+        ceedmart: {
+          navy: "#05007F",
+          "navy-light": "#0037BF",
+          blue: "#15A6FF",
+          gold: "#FFCE00",
+        },
+        wholefoods: {
+          DEFAULT: "#F59E0B",
+          light: "#FDE68A",
+          dark: "#B45309",
+          bg: "#FFFBEB",
+          accent: "#D97706",
+        },
+        tech: {
+          DEFAULT: "#05007F",
+          light: "#15A6FF",
+          dark: "#0037BF",
+          bg: "#EFF6FF",
+          accent: "#3B82F6",
+        },
       },
       borderRadius: {
         none: "0px",
@@ -60,6 +80,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "var(--font-gilroy)",
           "Inter",
           "-apple-system",
           "BlinkMacSystemFont",

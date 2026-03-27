@@ -9,15 +9,15 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
-import AdBanner from "@modules/home/components/ad-banner"
 import SearchBar from "@modules/home/components/search-bar"
 import CollectionsCarousel from "@modules/home/components/collections-carousel"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 
 export const metadata: Metadata = {
-  title: "Store | CeedMart",
-  description: "Explore all of our products.",
+  title: "Tech Store | CeedMart",
+  description:
+    "Laptops, gadgets, CCTV, solar & power solutions at CeedMart.",
 }
 
 type Params = {
@@ -31,7 +31,7 @@ type Params = {
   }>
 }
 
-export default async function StorePage(props: Params) {
+export default async function TechStorePage(props: Params) {
   const params = await props.params
   const searchParams = await props.searchParams
   const { sortBy, page, q } = searchParams
@@ -41,7 +41,6 @@ export default async function StorePage(props: Params) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
 
-  // When searching, show filtered results with pagination
   if (isSearching) {
     return (
       <div
@@ -68,7 +67,6 @@ export default async function StorePage(props: Params) {
     )
   }
 
-  // Default store view: rich browsing experience
   const [categories, collectionsData, productsData, region] =
     await Promise.all([
       listCategories(),
@@ -96,26 +94,37 @@ export default async function StorePage(props: Params) {
   if (!region) return null
 
   return (
-    <div className="content-container py-6 flex flex-col gap-2">
-      <AdBanner />
-
-      <div className="my-4">
-        <SearchBar />
+    <div className="flex flex-col gap-2">
+      {/* Tech Store Header */}
+      <div className="w-full bg-gradient-to-r from-tech to-tech-dark">
+        <div className="content-container py-8 small:py-12">
+          <h1 className="text-white text-3xl small:text-4xl font-bold drop-shadow-sm">
+            Tech Store
+          </h1>
+          <p className="text-white/80 text-base mt-2">
+            Laptops, gadgets, CCTV, solar & power solutions
+          </p>
+          <div className="mt-6 max-w-xl">
+            <SearchBar />
+          </div>
+        </div>
       </div>
 
-      <CollectionsCarousel collections={collections} />
+      <div className="content-container py-4 flex flex-col gap-2">
+        <CollectionsCarousel collections={collections} />
 
-      <CategoriesCarousel categories={topLevelCategories} />
+        <CategoriesCarousel categories={topLevelCategories} />
 
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-grey-90 mb-6">All Products</h2>
-        <InfiniteProductGrid
-          initialProducts={products}
-          initialHasMore={hasMore}
-          countryCode={countryCode}
-          region={region}
-        />
-      </section>
+        <section className="mt-8">
+          <h2 className="text-lg font-bold text-grey-90 mb-6">All Products</h2>
+          <InfiniteProductGrid
+            initialProducts={products}
+            initialHasMore={hasMore}
+            countryCode={countryCode}
+            region={region}
+          />
+        </section>
+      </div>
     </div>
   )
 }
