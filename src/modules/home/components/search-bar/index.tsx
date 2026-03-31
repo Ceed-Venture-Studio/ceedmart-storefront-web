@@ -3,7 +3,7 @@
 import { useRouter, useParams } from "next/navigation"
 import { useState, FormEvent } from "react"
 
-export default function SearchBar() {
+export default function SearchBar({ buttonClassName }: { buttonClassName?: string }) {
   const [query, setQuery] = useState("")
   const router = useRouter()
   const { countryCode } = useParams()
@@ -35,12 +35,12 @@ export default function SearchBar() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for products, brands, or categories..."
+          placeholder="Search wholesale products, brands, or categories..."
           className="w-full h-12 pl-12 pr-14 rounded-full border border-grey-20 bg-white text-sm text-grey-90 placeholder:text-grey-40 focus:outline-none focus:border-ceedmart-navy transition-colors shadow-sm hover:shadow-md focus:shadow-md"
         />
         <button
           type="submit"
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-ceedmart-navy text-white flex items-center justify-center hover:bg-ceedmart-navy-light transition-colors"
+          className={buttonClassName || "absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-ceedmart-navy text-white flex items-center justify-center hover:bg-ceedmart-navy-light transition-colors"}
         >
           <svg
             className="h-4 w-4"

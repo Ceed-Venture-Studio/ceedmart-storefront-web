@@ -17,7 +17,7 @@ import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 
 export const metadata: Metadata = {
   title: "Store | CeedMart",
-  description: "Explore all of our products.",
+  description: "Browse wholesale products and place bulk orders at CeedMart.",
 }
 
 type Params = {

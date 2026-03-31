@@ -119,7 +119,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               <Button
                 onClick={handleAddToCart}
                 disabled={!inStock || !variant}
-                className="w-full"
+                className="w-full bg-ceedmart-navy hover:bg-ceedmart-navy-light"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
               >

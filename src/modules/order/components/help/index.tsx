@@ -1,6 +1,15 @@
 import { Heading } from "@medusajs/ui"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import React from "react"
+
+const WHATSAPP_URL =
+  "https://wa.me/2348066933942?text=" +
+  encodeURIComponent("Hello CeedMart, I need help with my order.")
+
+const RETURNS_URL =
+  "https://wa.me/2348066933942?text=" +
+  encodeURIComponent(
+    "Hello CeedMart, I would like to enquire about a return or exchange."
+  )
 
 const Help = () => {
   return (
@@ -9,12 +18,24 @@ const Help = () => {
       <div className="text-base-regular my-2">
         <ul className="gap-y-2 flex flex-col">
           <li>
-            <LocalizedClientLink href="/contact">Contact</LocalizedClientLink>
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ui-fg-base underline"
+            >
+              Contact Us on WhatsApp
+            </a>
           </li>
           <li>
-            <LocalizedClientLink href="/contact">
+            <a
+              href={RETURNS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ui-fg-base underline"
+            >
               Returns & Exchanges
-            </LocalizedClientLink>
+            </a>
           </li>
         </ul>
       </div>

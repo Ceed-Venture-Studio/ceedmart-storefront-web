@@ -1,0 +1,49 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--build-arg"
+      - "MEDUSA_BACKEND_URL=https://ceedmart-medusa-870514614467.europe-west1.run.app"
+      - "--build-arg"
+      - "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_870f35bd3ecc53fdd67f7475dd17e290e6a7b8e249070851deb4bab58672b002"
+      - "--build-arg"
+      - "NEXT_PUBLIC_BASE_URL=https://ceedmart-storefront-870514614467.europe-west1.run.app"
+      - "--build-arg"
+      - "NEXT_PUBLIC_DEFAULT_REGION=ng"
+      - "--build-arg"
+      - "REVALIDATE_SECRET=supersecret"
+      - "-t"
+      - "europe-west1-docker.pkg.dev/ceedmart/ceedmart-docker/storefront:latest"
+      - "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "europe-west1-docker.pkg.dev/ceedmart/ceedmart-docker/storefront:latest"]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
+    args:
+      - "run"
+      - "deploy"
+      - "ceedmart-storefront"
+      - "--image"
+      - "europe-west1-docker.pkg.dev/ceedmart/ceedmart-docker/storefront:latest"
+      - "--region"
+      - "europe-west1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--set-env-vars"
+      - "MEDUSA_BACKEND_URL=https://ceedmart-medusa-870514614467.europe-west1.run.app,REVALIDATE_SECRET=supersecret"
+      - "--min-instances"
+      - "1"
+      - "--max-instances"
+      - "10"
+      - "--memory"
+      - "512Mi"
+      - "--cpu"
+      - "1"
+      - "--port"
+      - "8000"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

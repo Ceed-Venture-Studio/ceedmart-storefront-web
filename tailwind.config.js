@@ -41,11 +41,13 @@ module.exports = {
           gold: "#FFCE00",
         },
         wholefoods: {
-          DEFAULT: "#F59E0B",
-          light: "#FDE68A",
-          dark: "#B45309",
-          bg: "#FFFBEB",
-          accent: "#D97706",
+          DEFAULT: "#16A34A",
+          light: "#BBF7D0",
+          dark: "#166534",
+          bg: "#F0FDF4",
+          accent: "#22C55E",
+          leaf: "#15803D",
+          earth: "#854D0E",
         },
         tech: {
           DEFAULT: "#05007F",

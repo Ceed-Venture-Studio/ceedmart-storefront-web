@@ -89,7 +89,7 @@ const CartDropdown = ({
           >
             <ShoppingBag className="w-6 h-6" />
             {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 bg-ceedmart-navy text-white text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full">
+              <span className="absolute -top-2 -right-2 text-ceedmart-navy text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center">
                 {totalItems}
               </span>
             )}
@@ -216,12 +216,12 @@ const CartDropdown = ({
                   <div className="bg-gray-900 text-small-regular flex items-center justify-center w-6 h-6 rounded-full text-white">
                     <span>0</span>
                   </div>
-                  <span>Your shopping bag is empty.</span>
+                  <span>Your wholesale cart is empty.</span>
                   <div>
                     <LocalizedClientLink href="/store">
                       <>
                         <span className="sr-only">Go to all products page</span>
-                        <Button onClick={close}>Explore products</Button>
+                        <Button onClick={close}>Browse wholesale</Button>
                       </>
                     </LocalizedClientLink>
                   </div>

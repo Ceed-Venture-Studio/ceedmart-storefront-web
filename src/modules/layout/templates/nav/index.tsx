@@ -7,6 +7,7 @@ import { getLocale } from "@lib/data/locale-actions"
 import { ShoppingBag, User } from "@medusajs/icons"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import BrandText from "@modules/layout/components/brand-text"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 
@@ -40,9 +41,7 @@ export default async function Nav() {
                 height={36}
                 className="h-9 w-9"
               />
-              <span className="text-ceedmart-navy font-bold text-xl tracking-tight hidden small:block">
-                Ceedmart
-              </span>
+              <BrandText />
             </LocalizedClientLink>
           </div>
 
@@ -56,19 +55,21 @@ export default async function Nav() {
                 <User className="w-6 h-6" />
               </LocalizedClientLink>
             </div>
-            <Suspense
-              fallback={
-                <LocalizedClientLink
-                  className="hover:text-ceedmart-navy"
-                  href="/cart"
-                  data-testid="nav-cart-link"
-                >
-                  <ShoppingBag className="w-6 h-6" />
-                </LocalizedClientLink>
-              }
-            >
-              <CartButton />
-            </Suspense>
+            <div className="hidden small:block">
+              <Suspense
+                fallback={
+                  <LocalizedClientLink
+                    className="hover:text-ceedmart-navy"
+                    href="/cart"
+                    data-testid="nav-cart-link"
+                  >
+                    <ShoppingBag className="w-6 h-6" />
+                  </LocalizedClientLink>
+                }
+              >
+                <CartButton />
+              </Suspense>
+            </div>
           </div>
         </nav>
       </header>

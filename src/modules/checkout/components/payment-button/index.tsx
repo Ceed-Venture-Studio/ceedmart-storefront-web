@@ -1,6 +1,6 @@
 "use client"
 
-import { isManual, isStripeLike } from "@lib/constants"
+import { isManual, isPulsePay, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
@@ -34,6 +34,10 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
           cart={cart}
           data-testid={dataTestId}
         />
+      )
+    case isPulsePay(paymentSession?.provider_id):
+      return (
+        <PulsePayButton notReady={notReady} data-testid={dataTestId} />
       )
     case isManual(paymentSession?.provider_id):
       return (
@@ -138,6 +142,7 @@ const StripePaymentButton = ({
         disabled={disabled || notReady}
         onClick={handlePayment}
         size="large"
+        className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
         isLoading={submitting}
         data-testid={dataTestId}
       >
@@ -178,6 +183,7 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
         isLoading={submitting}
         onClick={handlePayment}
         size="large"
+        className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
         data-testid="submit-order-button"
       >
         Place order
@@ -185,6 +191,48 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
       <ErrorMessage
         error={errorMessage}
         data-testid="manual-payment-error-message"
+      />
+    </>
+  )
+}
+
+const PulsePayButton = ({
+  notReady,
+  "data-testid": dataTestId,
+}: {
+  notReady: boolean
+  "data-testid"?: string
+}) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const handlePayment = async () => {
+    setSubmitting(true)
+
+    await placeOrder()
+      .catch((err) => {
+        setErrorMessage(err.message)
+      })
+      .finally(() => {
+        setSubmitting(false)
+      })
+  }
+
+  return (
+    <>
+      <Button
+        disabled={notReady}
+        isLoading={submitting}
+        onClick={handlePayment}
+        size="large"
+        className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
+        data-testid={dataTestId}
+      >
+        Confirm Order
+      </Button>
+      <ErrorMessage
+        error={errorMessage}
+        data-testid="pulse-payment-error-message"
       />
     </>
   )

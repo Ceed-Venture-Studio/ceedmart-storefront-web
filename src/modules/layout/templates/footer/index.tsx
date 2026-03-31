@@ -13,7 +13,7 @@ export default async function Footer() {
   const productCategories = await listCategories()
 
   return (
-    <footer className="border-t border-ui-border-base w-full">
+    <footer className="border-t border-ui-border-base w-full hidden small:block">
       <div className="content-container flex flex-col w-full">
         <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
           <div>
@@ -32,7 +32,7 @@ export default async function Footer() {
                 Ceedmart
               </span>
             </LocalizedClientLink>
-            <p className="text-ui-fg-subtle text-sm mt-2">General Merchandise</p>
+            <p className="text-ui-fg-subtle text-sm mt-2">Wholesale & Bulk Orders</p>
           </div>
           <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
             {productCategories && productCategories?.length > 0 && (

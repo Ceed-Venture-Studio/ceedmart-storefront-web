@@ -250,7 +250,17 @@ export async function initiatePaymentSession(
     .then(async (resp) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
-      return resp
+
+      // Extract checkout_url from payment session data for redirect-based providers
+      const session = (resp as any)?.payment_collection?.payment_sessions?.find(
+        (s: any) => s.status === "pending" && s.provider_id === data.provider_id
+      )
+      const sessionData = session?.data as Record<string, any> | undefined
+
+      return {
+        ...resp,
+        checkout_url: sessionData?.checkout_url,
+      }
     })
     .catch(medusaError)
 }

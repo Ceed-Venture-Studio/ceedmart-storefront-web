@@ -5,9 +5,9 @@ import SearchHero from "@modules/home/components/search-hero"
 import StoreCards from "@modules/home/components/store-cards"
 
 export const metadata: Metadata = {
-  title: "CeedMart - General Merchandise",
+  title: "CeedMart - Wholesale & Bulk Orders",
   description:
-    "Shop for everything you need at CeedMart. General merchandise at your fingertips.",
+    "Wholesale prices on bulk orders. Fresh foods, tech, gadgets & more — direct from CeedMart.",
 }
 
 type Props = {

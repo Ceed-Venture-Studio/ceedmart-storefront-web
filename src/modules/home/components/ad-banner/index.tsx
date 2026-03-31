@@ -15,17 +15,17 @@ export default function AdBanner() {
       </div>
       <div className="flex-1 text-center small:text-left">
         <h2 className="text-white text-xl small:text-2xl font-bold mb-1">
-          Shop Everything You Need
+          Wholesale & Bulk Orders
         </h2>
         <p className="text-white/70 text-sm small:text-base">
-          General merchandise at your fingertips. Quality products, great prices.
+          Wholesale prices on bulk orders. Quality products for businesses and resellers.
         </p>
       </div>
       <LocalizedClientLink
         href="/store"
         className="flex-shrink-0 px-6 py-3 rounded-full bg-ceedmart-gold text-ceedmart-navy font-semibold text-sm hover:bg-ceedmart-gold/90 transition-colors"
       >
-        Shop Now
+        Browse Wholesale
       </LocalizedClientLink>
     </div>
   )

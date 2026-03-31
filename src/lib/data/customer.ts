@@ -12,7 +12,9 @@ import {
   getCartId,
   removeAuthToken,
   removeCartId,
+  removePulseToken,
   setAuthToken,
+  setPulseToken,
 } from "./cookies"
 
 export const retrieveCustomer =
@@ -80,11 +82,19 @@ export async function signup(_currentState: unknown, formData: FormData) {
       ...(await getAuthHeaders()),
     }
 
-    const { customer: createdCustomer } = await sdk.store.customer.create(
-      customerForm,
-      {},
-      headers
-    )
+    // Use raw fetch to capture pulse_token from response
+    const createRes = await sdk.client.fetch<{
+      customer: HttpTypes.StoreCustomer
+      pulse_token?: string
+    }>("/store/customers", {
+      method: "POST",
+      body: { ...customerForm, password },
+      headers,
+    })
+
+    if (createRes.pulse_token) {
+      await setPulseToken(createRes.pulse_token)
+    }
 
     const loginToken = await sdk.auth.login("customer", "emailpass", {
       email: customerForm.email,
@@ -98,9 +108,15 @@ export async function signup(_currentState: unknown, formData: FormData) {
 
     await transferCart()
 
-    return createdCustomer
+    return null
   } catch (error: any) {
-    return error.toString()
+    if (error instanceof Error) {
+      return error.message
+    }
+    if (typeof error === "object" && error?.message) {
+      return error.message
+    }
+    return "An error occurred during registration. Please try again."
   }
 }
 
@@ -109,21 +125,37 @@ export async function login(_currentState: unknown, formData: FormData) {
   const password = formData.get("password") as string
 
   try {
-    await sdk.auth
-      .login("customer", "emailpass", { email, password })
-      .then(async (token) => {
-        await setAuthToken(token as string)
-        const customerCacheTag = await getCacheTag("customers")
-        revalidateTag(customerCacheTag)
-      })
+    // Use raw fetch to capture pulse_token from login response
+    const loginRes = await sdk.client.fetch<{
+      token: string
+      pulse_token?: string
+    }>("/auth/customer/emailpass", {
+      method: "POST",
+      body: { email, password },
+    })
+
+    await setAuthToken(loginRes.token)
+
+    if (loginRes.pulse_token) {
+      await setPulseToken(loginRes.pulse_token)
+    }
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
   } catch (error: any) {
-    return error.toString()
+    if (error instanceof Error) {
+      return error.message
+    }
+    if (typeof error === "object" && error?.message) {
+      return error.message
+    }
+    return "Invalid email or password. Please try again."
   }
 
   try {
     await transferCart()
   } catch (error: any) {
-    return error.toString()
+    return null
   }
 }
 
@@ -131,6 +163,7 @@ export async function signout(countryCode: string) {
   await sdk.auth.logout()
 
   await removeAuthToken()
+  await removePulseToken()
 
   const customerCacheTag = await getCacheTag("customers")
   revalidateTag(customerCacheTag)

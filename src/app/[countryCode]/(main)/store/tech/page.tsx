@@ -5,6 +5,10 @@ import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
+import {
+  TECH_COLLECTION_IDS,
+  TECH_CATEGORY_IDS,
+} from "@lib/data/store-config"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
@@ -13,11 +17,12 @@ import SearchBar from "@modules/home/components/search-bar"
 import CollectionsCarousel from "@modules/home/components/collections-carousel"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
+import PromoBanner from "@modules/home/components/promo-banner"
 
 export const metadata: Metadata = {
-  title: "Tech Store | CeedMart",
+  title: "Electronics & Solar | CeedMart",
   description:
-    "Laptops, gadgets, CCTV, solar & power solutions at CeedMart.",
+    "Wholesale electronics, gadgets, CCTV, solar & power solutions — bulk orders at CeedMart.",
 }
 
 type Params = {
@@ -29,6 +34,10 @@ type Params = {
   params: Promise<{
     countryCode: string
   }>
+}
+
+const techProductFilter = {
+  collection_id: TECH_COLLECTION_IDS,
 }
 
 export default async function TechStorePage(props: Params) {
@@ -74,35 +83,57 @@ export default async function TechStorePage(props: Params) {
       listProducts({
         pageParam: 1,
         countryCode,
-        queryParams: { limit: 12 },
+        queryParams: { limit: 12, ...techProductFilter },
       }),
       getRegion(countryCode),
     ])
 
-  const topLevelCategories = (categories || [])
-    .filter((c) => !c.parent_category)
+  // Filter to only tech-related top-level categories
+  const techCategories = (categories || [])
+    .filter((c) => !c.parent_category && TECH_CATEGORY_IDS.includes(c.id))
     .map((c) => ({
       id: c.id,
       name: c.name,
       handle: c.handle,
     }))
 
-  const collections = collectionsData?.collections || []
+  // Filter to only tech-related collections
+  const techCollections = (collectionsData?.collections || []).filter((c) =>
+    TECH_COLLECTION_IDS.includes(c.id)
+  )
+
   const { products } = productsData.response
   const hasMore = productsData.nextPage !== null
 
   if (!region) return null
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Tech Store Header */}
-      <div className="w-full bg-gradient-to-r from-tech to-tech-dark">
-        <div className="content-container py-8 small:py-12">
-          <h1 className="text-white text-3xl small:text-4xl font-bold drop-shadow-sm">
-            Tech Store
+    <div className="flex flex-col gap-0 bg-tech-bg min-h-screen">
+      {/* Header */}
+      <div className="w-full bg-gradient-to-br from-tech via-tech-dark to-ceedmart-navy relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-8 -right-8 w-36 h-36 border border-white/10 rounded-full" />
+          <div className="absolute bottom-4 left-16 w-20 h-20 border border-white/10 rounded-full" />
+          <div className="absolute top-1/3 right-1/4 w-12 h-12 border border-white/10 rounded" />
+        </div>
+
+        <div className="content-container relative py-10 small:py-14">
+          <div className="flex items-center gap-3 mb-2">
+            <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8">
+              <rect x="6" y="4" width="20" height="16" rx="2" stroke="white" strokeWidth="1.5" />
+              <rect x="8" y="6" width="16" height="12" rx="1" fill="#15A6FF" fillOpacity="0.3" />
+              <line x1="12" y1="22" x2="20" y2="22" stroke="white" strokeWidth="1.5" />
+              <line x1="10" y1="24" x2="22" y2="24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <span className="text-tech-light text-sm font-semibold uppercase tracking-widest">
+              Wholesale Electronics
+            </span>
+          </div>
+          <h1 className="text-white text-3xl small:text-5xl font-bold drop-shadow-sm">
+            Electronics & Solar
           </h1>
-          <p className="text-white/80 text-base mt-2">
-            Laptops, gadgets, CCTV, solar & power solutions
+          <p className="text-white/80 text-base small:text-lg mt-3 max-w-lg">
+            Wholesale electronics, gadgets, CCTV, solar & power solutions — bulk pricing for businesses and resellers.
           </p>
           <div className="mt-6 max-w-xl">
             <SearchBar />
@@ -110,18 +141,25 @@ export default async function TechStorePage(props: Params) {
         </div>
       </div>
 
-      <div className="content-container py-4 flex flex-col gap-2">
-        <CollectionsCarousel collections={collections} />
+      <div className="content-container py-6 flex flex-col gap-4">
+        <CollectionsCarousel collections={techCollections} />
 
-        <CategoriesCarousel categories={topLevelCategories} />
+        <CategoriesCarousel categories={techCategories} />
+
+        <div className="mt-4">
+          <PromoBanner variant="tech" />
+        </div>
 
         <section className="mt-8">
-          <h2 className="text-lg font-bold text-grey-90 mb-6">All Products</h2>
+          <h2 className="text-lg font-bold text-grey-90 mb-6">
+            All Electronics & Solar
+          </h2>
           <InfiniteProductGrid
             initialProducts={products}
             initialHasMore={hasMore}
             countryCode={countryCode}
             region={region}
+            queryParams={techProductFilter}
           />
         </section>
       </div>

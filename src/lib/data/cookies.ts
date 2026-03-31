@@ -54,7 +54,7 @@ export const setAuthToken = async (token: string) => {
   cookies.set("_medusa_jwt", token, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
 }
@@ -76,7 +76,7 @@ export const setCartId = async (cartId: string) => {
   cookies.set("_medusa_cart_id", cartId, {
     maxAge: 60 * 60 * 24 * 7,
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   })
 }
@@ -84,6 +84,28 @@ export const setCartId = async (cartId: string) => {
 export const removeCartId = async () => {
   const cookies = await nextCookies()
   cookies.set("_medusa_cart_id", "", {
+    maxAge: -1,
+  })
+}
+
+export const setPulseToken = async (token: string) => {
+  const cookies = await nextCookies()
+  cookies.set("_pulse_token", token, {
+    maxAge: 60 * 60 * 24 * 365,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  })
+}
+
+export const getPulseToken = async () => {
+  const cookies = await nextCookies()
+  return cookies.get("_pulse_token")?.value
+}
+
+export const removePulseToken = async () => {
+  const cookies = await nextCookies()
+  cookies.set("_pulse_token", "", {
     maxAge: -1,
   })
 }

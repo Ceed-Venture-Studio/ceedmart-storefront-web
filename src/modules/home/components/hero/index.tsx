@@ -24,7 +24,7 @@ const Hero = () => {
             level="h2"
             className="text-3xl leading-10 text-white/80 font-normal"
           >
-            General Merchandise
+            Wholesale & Bulk Orders
           </Heading>
         </span>
         <LocalizedClientLink href="/store">

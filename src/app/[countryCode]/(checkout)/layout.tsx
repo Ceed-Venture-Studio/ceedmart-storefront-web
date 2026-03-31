@@ -1,6 +1,6 @@
+import Image from "next/image"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
-import MedusaCTA from "@modules/layout/components/medusa-cta"
 
 export default function CheckoutLayout({
   children,
@@ -26,17 +26,28 @@ export default function CheckoutLayout({
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"
-            className="txt-compact-xlarge-plus text-ui-fg-subtle hover:text-ui-fg-base uppercase"
+            className="flex items-center gap-x-2 hover:opacity-80 transition-opacity"
             data-testid="store-link"
           >
-            Medusa Store
+            <Image
+              src="/logo.png"
+              alt="CeedMart"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
+            <span className="text-ceedmart-navy font-bold text-lg tracking-tight hidden small:block">
+              Ceedmart
+            </span>
           </LocalizedClientLink>
           <div className="flex-1 basis-0" />
         </nav>
       </div>
       <div className="relative" data-testid="checkout-container">{children}</div>
       <div className="py-4 w-full flex items-center justify-center">
-        <MedusaCTA />
+        <span className="txt-compact-small text-ui-fg-muted">
+          © {new Date().getFullYear()} CeedMart. All rights reserved.
+        </span>
       </div>
     </div>
   )

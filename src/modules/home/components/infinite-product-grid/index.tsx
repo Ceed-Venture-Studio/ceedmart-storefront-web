@@ -12,11 +12,13 @@ export default function InfiniteProductGrid({
   initialHasMore,
   countryCode,
   region,
+  queryParams,
 }: {
   initialProducts: HttpTypes.StoreProduct[]
   initialHasMore: boolean
   countryCode: string
   region: HttpTypes.StoreRegion
+  queryParams?: Record<string, any>
 }) {
   const [products, setProducts] = useState(initialProducts)
   const [page, setPage] = useState(1)
@@ -33,7 +35,7 @@ export default function InfiniteProductGrid({
       const { response, nextPage: morePages } = await listProducts({
         pageParam: nextPage,
         countryCode,
-        queryParams: { limit: PRODUCT_LIMIT },
+        queryParams: { limit: PRODUCT_LIMIT, ...queryParams },
       })
 
       setProducts((prev) => [...prev, ...response.products])
@@ -44,7 +46,7 @@ export default function InfiniteProductGrid({
     } finally {
       setIsLoading(false)
     }
-  }, [isLoading, hasMore, page, countryCode])
+  }, [isLoading, hasMore, page, countryCode, queryParams])
 
   useEffect(() => {
     const sentinel = sentinelRef.current

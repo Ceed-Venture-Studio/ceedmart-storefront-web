@@ -46,7 +46,7 @@ export default function SearchHero({
             CeedMart
           </h1>
           <p className="text-grey-50 text-base">
-            What are you looking for today?
+            Wholesale & bulk orders at the best prices
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export default function SearchHero({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for products, brands, or categories..."
+              placeholder="Search products for wholesale & bulk orders..."
               className="w-full h-14 pl-12 pr-14 rounded-full border-2 border-grey-20 bg-white text-base text-grey-90 placeholder:text-grey-40 focus:outline-none focus:border-ceedmart-navy transition-colors shadow-sm hover:shadow-md focus:shadow-md"
             />
             <button

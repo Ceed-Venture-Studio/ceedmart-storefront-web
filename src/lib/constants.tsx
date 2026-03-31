@@ -34,6 +34,10 @@ export const paymentInfoMap: Record<
     title: "Manual Payment",
     icon: <CreditCard />,
   },
+  "pp_pulse-pay_pulse-pay": {
+    title: "Pulse Pay by Ceed",
+    icon: <CreditCard />,
+  },
   // Add more payment providers here
 }
 
@@ -49,6 +53,10 @@ export const isPaypal = (providerId?: string) => {
 }
 export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
+}
+
+export const isPulsePay = (providerId?: string) => {
+  return providerId?.startsWith("pp_pulse-pay")
 }
 
 // Add currencies that don't need to be divided by 100

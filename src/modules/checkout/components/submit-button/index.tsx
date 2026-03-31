@@ -20,7 +20,7 @@ export function SubmitButton({
   return (
     <Button
       size="large"
-      className={className}
+      className={`bg-ceedmart-navy hover:bg-ceedmart-navy-light ${className || ""}`}
       type="submit"
       isLoading={pending}
       variant={variant || "primary"}

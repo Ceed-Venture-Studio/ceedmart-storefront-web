@@ -1,7 +1,7 @@
 "use client"
 
 import { RadioGroup } from "@headlessui/react"
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { isStripeLike, isPulsePay, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
@@ -76,6 +76,21 @@ const Payment = ({
       const shouldInputCard =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
+      // Pulse Pay: always create a fresh session and redirect
+      if (isPulsePay(selectedPaymentMethod)) {
+        const result = await initiatePaymentSession(cart, {
+          provider_id: selectedPaymentMethod,
+        })
+
+        if (result?.checkout_url) {
+          window.location.href = result.checkout_url
+          return
+        }
+
+        setError("Failed to initiate payment. Please try again.")
+        return
+      }
+
       const checkActiveSession =
         activeSession?.provider_id === selectedPaymentMethod
 
@@ -100,8 +115,13 @@ const Payment = ({
     }
   }
 
+  // Clean up session_id from URL on return from payment provider
   useEffect(() => {
     setError(null)
+    if (searchParams.has("session_id")) {
+      const step = searchParams.get("step") || "payment"
+      router.replace(pathname + "?step=" + step, { scroll: false })
+    }
   }, [isOpen])
 
   return (
@@ -185,7 +205,7 @@ const Payment = ({
 
           <Button
             size="large"
-            className="mt-6"
+            className="mt-6 bg-ceedmart-navy hover:bg-ceedmart-navy-light"
             onClick={handleSubmit}
             isLoading={isLoading}
             disabled={
@@ -195,8 +215,10 @@ const Payment = ({
             data-testid="submit-payment-button"
           >
             {!activeSession && isStripeLike(selectedPaymentMethod)
-              ? " Enter card details"
-              : "Continue to review"}
+              ? "Enter card details"
+              : isPulsePay(selectedPaymentMethod)
+                ? "Pay with Pulse Pay"
+                : "Continue to review"}
           </Button>
         </div>
 

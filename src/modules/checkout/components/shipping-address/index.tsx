@@ -6,6 +6,7 @@ import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
+import NigeriaAddressSelect from "../nigeria-address-select"
 
 const ShippingAddress = ({
   customer,
@@ -30,6 +31,8 @@ const ShippingAddress = ({
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
   })
+
+  const isNigeria = formData["shipping_address.country_code"] === "ng"
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -89,6 +92,28 @@ const ShippingAddress = ({
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleCountryChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newCountry = e.target.value
+    setFormData({
+      ...formData,
+      "shipping_address.country_code": newCountry,
+      // Reset state/city when switching countries
+      ...(newCountry === "ng"
+        ? { "shipping_address.province": "", "shipping_address.city": "" }
+        : {}),
+    })
+  }
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      "shipping_address.province": e.target.value,
+      "shipping_address.city": "", // Reset LGA when state changes
     })
   }
 
@@ -155,32 +180,48 @@ const ShippingAddress = ({
           required
           data-testid="shipping-postal-code-input"
         />
-        <Input
-          label="City"
-          name="shipping_address.city"
-          autoComplete="address-level2"
-          value={formData["shipping_address.city"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-city-input"
-        />
         <CountrySelect
           name="shipping_address.country_code"
           autoComplete="country"
           region={cart?.region}
           value={formData["shipping_address.country_code"]}
-          onChange={handleChange}
+          onChange={handleCountryChange}
           required
           data-testid="shipping-country-select"
         />
-        <Input
-          label="State / Province"
-          name="shipping_address.province"
-          autoComplete="address-level1"
-          value={formData["shipping_address.province"]}
-          onChange={handleChange}
-          data-testid="shipping-province-input"
-        />
+        {isNigeria ? (
+          <NigeriaAddressSelect
+            stateValue={formData["shipping_address.province"]}
+            lgaValue={formData["shipping_address.city"]}
+            onStateChange={handleStateChange}
+            onLgaChange={handleChange}
+            stateName="shipping_address.province"
+            lgaName="shipping_address.city"
+            stateTestId="shipping-province-select"
+            lgaTestId="shipping-city-select"
+            required
+          />
+        ) : (
+          <>
+            <Input
+              label="City"
+              name="shipping_address.city"
+              autoComplete="address-level2"
+              value={formData["shipping_address.city"]}
+              onChange={handleChange}
+              required
+              data-testid="shipping-city-input"
+            />
+            <Input
+              label="State / Province"
+              name="shipping_address.province"
+              autoComplete="address-level1"
+              value={formData["shipping_address.province"]}
+              onChange={handleChange}
+              data-testid="shipping-province-input"
+            />
+          </>
+        )}
       </div>
       <div className="my-8">
         <Checkbox
@@ -209,6 +250,7 @@ const ShippingAddress = ({
           autoComplete="tel"
           value={formData["shipping_address.phone"]}
           onChange={handleChange}
+          required
           data-testid="shipping-phone-input"
         />
       </div>
