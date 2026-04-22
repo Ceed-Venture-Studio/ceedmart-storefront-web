@@ -23,6 +23,10 @@
 .DS_Store
 *.pem
 
+# Gilroy font download artifacts (only keep .ttf files)
+/gilroy/*
+!/gilroy/*.ttf
+
 # debug
 npm-debug.log*
 yarn-debug.log*

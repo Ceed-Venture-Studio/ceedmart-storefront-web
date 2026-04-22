@@ -24,29 +24,32 @@ async function getRegionMap(cacheId: string) {
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
     // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": PUBLISHABLE_API_KEY!,
-      },
-      next: {
-        revalidate: 3600,
-        tags: [`regions-${cacheId}`],
-      },
-      cache: "force-cache",
-    }).then(async (response) => {
-      const json = await response.json()
+    let response: Response
 
-      if (!response.ok) {
-        throw new Error(json.message)
-      }
+    try {
+      response = await fetch(`${BACKEND_URL}/store/regions`, {
+        headers: {
+          "x-publishable-api-key": PUBLISHABLE_API_KEY!,
+        },
+        next: {
+          revalidate: 3600,
+          tags: [`regions-${cacheId}`],
+        },
+        cache: "force-cache",
+      })
+    } catch (error) {
+      return null
+    }
 
-      return json
-    })
+    if (!response.ok) {
+      return null
+    }
+
+    const json = await response.json()
+    const regions = json.regions
 
     if (!regions?.length) {
-      throw new Error(
-        "No regions found. Please set up regions in your Medusa Admin."
-      )
+      return null
     }
 
     // Create a map of country codes to regions.
@@ -114,7 +117,32 @@ export async function middleware(request: NextRequest) {
 
   const regionMap = await getRegionMap(cacheId)
 
-  const countryCode = regionMap && (await getCountryCode(request, regionMap))
+  if (!regionMap) {
+    return new NextResponse(
+      `<!DOCTYPE html>
+<html>
+<head><title>Service Unavailable</title></head>
+<body style="font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb">
+  <div style="text-align:center;max-width:480px;padding:2rem">
+    <h1 style="font-size:1.5rem;color:#111827;margin-bottom:0.5rem">Service Unavailable</h1>
+    <p style="color:#6b7280;line-height:1.6">
+      Unable to connect to the backend service at <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px">${BACKEND_URL}</code>.
+      Please ensure the Medusa server is running and try again.
+    </p>
+  </div>
+</body>
+</html>`,
+      {
+        status: 503,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "retry-after": "30",
+        },
+      }
+    )
+  }
+
+  const countryCode = await getCountryCode(request, regionMap)
 
   const urlHasCountryCode =
     countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
@@ -148,7 +176,6 @@ export async function middleware(request: NextRequest) {
     redirectUrl = `${request.nextUrl.origin}/${countryCode}${redirectPath}${queryString}`
     response = NextResponse.redirect(`${redirectUrl}`, 307)
   } else if (!urlHasCountryCode && !countryCode) {
-    // Handle case where no valid country code exists (empty regions)
     return new NextResponse(
       "No valid regions configured. Please set up regions with countries in your Medusa Admin.",
       { status: 500 }

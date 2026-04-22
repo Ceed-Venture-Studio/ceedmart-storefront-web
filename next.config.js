@@ -14,11 +14,34 @@ const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  },
   logging: {
     fetches: {
       fullUrl: true,
     },
   },
+  headers: async () => [
+    {
+      source: "/:path*",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=0, must-revalidate",
+        },
+      ],
+    },
+    {
+      source: "/_next/static/:path*",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
+        },
+      ],
+    },
+  ],
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -17,10 +17,10 @@ NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY="pk_870f35bd3ecc53fdd67f7475dd17e290e6a7b8e24
 NEXT_PUBLIC_DEFAULT_REGION="ng"
 REGION="europe-west1"
 SERVICE_NAME="ceedmart-storefront"
-IMAGE="gcr.io/${GCP_PROJECT_ID}/${SERVICE_NAME}"
+IMAGE="europe-west1-docker.pkg.dev/${GCP_PROJECT_ID}/ceedmart-docker/storefront"
 
 # ---- Production values ----
-MEDUSA_BACKEND_URL="${MEDUSA_BACKEND_URL:-https://ceedmart-medusa-870514614467.europe-west1.run.app}"
+MEDUSA_BACKEND_URL="${MEDUSA_BACKEND_URL:-https://ceedmart-api-870514614467.europe-west1.run.app}"
 NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL:?Set NEXT_PUBLIC_BASE_URL (e.g. https://ceedmart.com or your Cloud Run URL)}"
 REVALIDATE_SECRET="${REVALIDATE_SECRET:-supersecret}"
 
@@ -41,7 +41,7 @@ docker build \
   -t "${IMAGE}:latest" \
   .
 
-echo "Pushing to GCR..."
+echo "Pushing to Artifact Registry..."
 docker push "${IMAGE}:latest"
 
 echo "Deploying to Cloud Run..."

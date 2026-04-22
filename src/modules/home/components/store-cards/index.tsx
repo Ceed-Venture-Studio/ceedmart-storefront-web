@@ -11,7 +11,7 @@ export default function StoreCards() {
       {/* Whole Foods Card */}
       <LocalizedClientLink
         href="/store/wholefoods"
-        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-wholefoods-dark via-wholefoods to-wholefoods-accent p-6 small:p-8 flex flex-col justify-between min-h-[200px] small:min-h-[240px] shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-wholefoods-dark via-wholefoods to-wholefoods-accent p-6 small:p-8 flex flex-col justify-between min-h-[200px] small:min-h-[240px] shadow-md hover:shadow-xl transition-shadow duration-300 small:transition-all small:hover:scale-[1.02]"
       >
         <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-30 transition-opacity">
           <svg viewBox="0 0 64 64" fill="currentColor" className="w-16 h-16 small:w-20 small:h-20 text-wholefoods-light">
@@ -40,7 +40,7 @@ export default function StoreCards() {
       {/* Tech Card */}
       <LocalizedClientLink
         href="/store/tech"
-        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-tech-dark via-tech to-tech-light p-6 small:p-8 flex flex-col justify-between min-h-[200px] small:min-h-[240px] shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-tech-dark via-tech to-tech-light p-6 small:p-8 flex flex-col justify-between min-h-[200px] small:min-h-[240px] shadow-md hover:shadow-xl transition-shadow duration-300 small:transition-all small:hover:scale-[1.02]"
       >
         <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-30 transition-opacity">
           <svg viewBox="0 0 64 64" fill="currentColor" className="w-16 h-16 small:w-20 small:h-20 text-white">
