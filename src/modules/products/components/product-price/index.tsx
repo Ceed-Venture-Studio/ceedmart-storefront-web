@@ -18,7 +18,14 @@ export default function ProductPrice({
   const selectedPrice = variant ? variantPrice : cheapestPrice
 
   if (!selectedPrice) {
-    return <div className="block w-32 h-9 bg-gray-100 animate-pulse" />
+    return (
+      <span
+        className="text-xl-semi text-ui-fg-muted"
+        data-testid="product-price-unavailable"
+      >
+        ₦—
+      </span>
+    )
   }
 
   return (
