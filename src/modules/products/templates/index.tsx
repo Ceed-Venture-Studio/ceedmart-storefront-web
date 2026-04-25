@@ -30,7 +30,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
       <div className="content-container py-6">
         <ProductOnboardingCta />
         <div className="grid grid-cols-1 small:grid-cols-[minmax(0,1.6fr)_minmax(0,4fr)_minmax(0,1.4fr)] gap-x-8 gap-y-6 items-start">
-          <div className="w-full small:sticky small:top-24">
+          <div className="w-full small:sticky small:top-24 small:col-start-1 small:col-end-2 small:row-start-1 small:row-end-3">
             <ImageGallery images={images} />
           </div>
           <ProductDetailView product={product} region={region} />

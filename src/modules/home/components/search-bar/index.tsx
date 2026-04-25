@@ -3,8 +3,14 @@
 import { useRouter, useParams } from "next/navigation"
 import { useState, FormEvent } from "react"
 
-export default function SearchBar({ buttonClassName }: { buttonClassName?: string }) {
-  const [query, setQuery] = useState("")
+export default function SearchBar({
+  buttonClassName,
+  initialQuery = "",
+}: {
+  buttonClassName?: string
+  initialQuery?: string
+}) {
+  const [query, setQuery] = useState(initialQuery)
   const router = useRouter()
   const { countryCode } = useParams()
 

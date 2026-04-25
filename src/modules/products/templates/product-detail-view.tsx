@@ -43,6 +43,14 @@ export default function ProductDetailView({ product, disabled }: Props) {
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [descExpanded, setDescExpanded] = useState(false)
+
+  // Plain-text length of the description; if longer than ~200 chars it's worth
+  // collapsing. Same value on SSR and client → no hydration mismatch.
+  const descPlainLen = (product.description ?? "")
+    .replace(/<[^>]+>/g, "")
+    .trim().length
+  const descCollapsible = descPlainLen > 200
 
   useEffect(() => {
     if (product.variants?.length === 1) {
@@ -124,9 +132,9 @@ export default function ProductDetailView({ product, disabled }: Props) {
 
   return (
     <>
-      {/* Middle column: title, price, variants, description, spec table */}
+      {/* Top middle: collection link, title, price, variants */}
       <div
-        className="flex flex-col gap-y-6 py-6 small:py-0"
+        className="flex flex-col gap-y-6 small:col-start-2 small:col-end-3 small:row-start-1"
         data-testid="product-container"
       >
         {product.collection && (
@@ -197,44 +205,44 @@ export default function ProductDetailView({ product, disabled }: Props) {
             <h3 className="text-base font-semibold text-ui-fg-base mb-2">
               About this product
             </h3>
-            <p
-              className="text-ui-fg-subtle whitespace-pre-line text-sm leading-6"
-              data-testid="product-description"
-            >
-              {product.description}
-            </p>
+            <div className="relative">
+              <div
+                data-testid="product-description"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+                style={
+                  descCollapsible && !descExpanded
+                    ? { maxHeight: "4.5rem", overflow: "hidden" }
+                    : undefined
+                }
+                className={clx(
+                  "text-sm text-ui-fg-subtle leading-6",
+                  "[&_p]:mb-2 [&_p:last-child]:mb-0",
+                  "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2",
+                  "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2",
+                  "[&_li]:mb-1",
+                  "[&_strong]:font-semibold [&_strong]:text-ui-fg-base",
+                  "[&_a]:text-ceedmart-navy [&_a]:underline"
+                )}
+              />
+              {descCollapsible && !descExpanded && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white" />
+              )}
+            </div>
+            {descCollapsible && (
+              <button
+                type="button"
+                onClick={() => setDescExpanded((v) => !v)}
+                className="mt-2 text-sm font-semibold text-ceedmart-navy hover:underline"
+              >
+                {descExpanded ? "Show less" : "Show more"}
+              </button>
+            )}
           </div>
         )}
-
-        <div>
-          <h3 className="text-base font-semibold text-ui-fg-base mb-3">
-            Product information
-          </h3>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-2 text-sm">
-            <dt className="font-semibold text-ui-fg-base">Material</dt>
-            <dd className="text-ui-fg-subtle">{product.material || "-"}</dd>
-            <dt className="font-semibold text-ui-fg-base">Country of origin</dt>
-            <dd className="text-ui-fg-subtle">
-              {product.origin_country || "-"}
-            </dd>
-            <dt className="font-semibold text-ui-fg-base">Type</dt>
-            <dd className="text-ui-fg-subtle">{product.type?.value || "-"}</dd>
-            <dt className="font-semibold text-ui-fg-base">Weight</dt>
-            <dd className="text-ui-fg-subtle">
-              {product.weight ? `${product.weight} g` : "-"}
-            </dd>
-            <dt className="font-semibold text-ui-fg-base">Dimensions</dt>
-            <dd className="text-ui-fg-subtle">
-              {product.length && product.width && product.height
-                ? `${product.length}L x ${product.width}W x ${product.height}H`
-                : "-"}
-            </dd>
-          </dl>
-        </div>
       </div>
 
-      {/* Right column: buy box (sticky on desktop) */}
-      <div className="w-full">
+      {/* Right column: buy box (sticky on desktop, sits below variants on mobile) */}
+      <div className="w-full small:col-start-3 small:col-end-4 small:row-start-1 small:row-end-3">
         <div
           ref={actionsRef}
           className="small:sticky small:top-24 rounded-lg border border-grey-20 bg-white p-5 flex flex-col gap-y-4 shadow-sm"
@@ -339,6 +347,35 @@ export default function ProductDetailView({ product, disabled }: Props) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Bottom middle: product information spec table (sits below buy box on mobile, below variants on desktop) */}
+      <div className="flex flex-col gap-y-6 small:col-start-2 small:col-end-3 small:row-start-2">
+        <div>
+          <h3 className="text-base font-semibold text-ui-fg-base mb-3">
+            Product information
+          </h3>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-2 text-sm">
+            <dt className="font-semibold text-ui-fg-base">Material</dt>
+            <dd className="text-ui-fg-subtle">{product.material || "-"}</dd>
+            <dt className="font-semibold text-ui-fg-base">Country of origin</dt>
+            <dd className="text-ui-fg-subtle">
+              {product.origin_country || "-"}
+            </dd>
+            <dt className="font-semibold text-ui-fg-base">Type</dt>
+            <dd className="text-ui-fg-subtle">{product.type?.value || "-"}</dd>
+            <dt className="font-semibold text-ui-fg-base">Weight</dt>
+            <dd className="text-ui-fg-subtle">
+              {product.weight ? `${product.weight} g` : "-"}
+            </dd>
+            <dt className="font-semibold text-ui-fg-base">Dimensions</dt>
+            <dd className="text-ui-fg-subtle">
+              {product.length && product.width && product.height
+                ? `${product.length}L x ${product.width}W x ${product.height}H`
+                : "-"}
+            </dd>
+          </dl>
         </div>
       </div>
 

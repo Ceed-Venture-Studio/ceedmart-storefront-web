@@ -44,25 +44,28 @@ export default async function StorePage(props: Params) {
   // When searching, show filtered results with pagination
   if (isSearching) {
     return (
-      <div
-        className="flex flex-col small:flex-row small:items-start py-6 content-container"
-        data-testid="category-container"
-      >
-        <RefinementList sortBy={sort} />
-        <div className="w-full">
-          <div className="mb-8 text-2xl-semi">
-            <h1 data-testid="store-page-title">
-              Search results for &ldquo;{q}&rdquo;
-            </h1>
+      <div className="content-container py-6 flex flex-col gap-6">
+        <SearchBar initialQuery={q} />
+        <div
+          className="flex flex-col small:flex-row small:items-start"
+          data-testid="category-container"
+        >
+          <RefinementList sortBy={sort} />
+          <div className="w-full">
+            <div className="mb-8 text-2xl-semi">
+              <h1 data-testid="store-page-title">
+                Search results for &ldquo;{q}&rdquo;
+              </h1>
+            </div>
+            <Suspense fallback={<SkeletonProductGrid />}>
+              <PaginatedProducts
+                sortBy={sort}
+                page={pageNumber}
+                countryCode={countryCode}
+                q={q}
+              />
+            </Suspense>
           </div>
-          <Suspense fallback={<SkeletonProductGrid />}>
-            <PaginatedProducts
-              sortBy={sort}
-              page={pageNumber}
-              countryCode={countryCode}
-              q={q}
-            />
-          </Suspense>
         </div>
       </div>
     )
