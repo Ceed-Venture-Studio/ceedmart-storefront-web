@@ -75,9 +75,9 @@ export default function PromoBanners() {
   }, [paused])
 
   return (
-    <div className="w-full px-4 small:px-6">
+    <div className="w-full flex justify-center px-6">
       <div
-        className="relative w-full max-w-[1440px] mx-auto overflow-hidden rounded-2xl h-[104px] small:h-[120px] shadow-md"
+        className="relative w-full max-w-2xl overflow-hidden rounded-2xl h-[104px] small:h-[120px] shadow-md"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         role="region"
