@@ -43,6 +43,7 @@ export default function ProductDetailView({ product, disabled }: Props) {
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [quantity, setQuantity] = useState(1)
   const [descExpanded, setDescExpanded] = useState(false)
 
   // Plain-text length of the description; if longer than ~200 chars it's worth
@@ -117,7 +118,7 @@ export default function ProductDetailView({ product, disabled }: Props) {
     setIsAdding(true)
     await addToCart({
       variantId: selectedVariant.id,
-      quantity: 1,
+      quantity,
       countryCode,
     })
     setIsAdding(false)
@@ -265,6 +266,48 @@ export default function ProductDetailView({ product, disabled }: Props) {
                 ) : (
                   <span className="text-ui-fg-subtle">Select a variant</span>
                 )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-ui-fg-base">
+                  Quantity
+                </span>
+                <div className="flex items-center border border-grey-20 rounded-md overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    disabled={quantity <= 1 || isAdding}
+                    aria-label="Decrease quantity"
+                    data-testid="qty-decrement"
+                    className="w-9 h-9 flex items-center justify-center text-ui-fg-base hover:bg-grey-10 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={quantity}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9]/g, "")
+                      const n = v === "" ? 1 : parseInt(v, 10)
+                      setQuantity(Math.min(99, Math.max(1, n)))
+                    }}
+                    aria-label="Quantity"
+                    data-testid="qty-input"
+                    className="w-10 h-9 text-center text-sm font-semibold text-ui-fg-base bg-white focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.min(99, q + 1))}
+                    disabled={quantity >= 99 || isAdding}
+                    aria-label="Increase quantity"
+                    data-testid="qty-increment"
+                    className="w-9 h-9 flex items-center justify-center text-ui-fg-base hover:bg-grey-10 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
               <Button
