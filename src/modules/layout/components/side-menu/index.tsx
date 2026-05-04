@@ -15,6 +15,7 @@ const SideMenuItems = {
   Home: "/",
   "Whole Foods": "/store/wholefoods",
   "Electronics & Solar": "/store/tech",
+  "Get Solar Estimates": "/solar",
   Account: "/account",
   Cart: "/cart",
 }
