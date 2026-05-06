@@ -49,6 +49,19 @@ export const getCacheOptions = async (
   return { tags: [`${cacheTag}`] }
 }
 
+// Global cache options — tags are NOT scoped by visitor cache_id, so the
+// backend can invalidate everyone's cache with one revalidateTag() call.
+// Use for public, non-personalised resources (products, categories,
+// collections, regions, locales). Do NOT use for cart, customer, or order data.
+export const getGlobalCacheOptions = (
+  tag: string
+): { tags: string[] } => {
+  if (typeof window !== "undefined") {
+    return { tags: [] }
+  }
+  return { tags: [tag] }
+}
+
 export const setAuthToken = async (token: string) => {
   const cookies = await nextCookies()
   cookies.set("_medusa_jwt", token, {

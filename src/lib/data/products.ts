@@ -4,7 +4,7 @@ import { sdk } from "@lib/config"
 import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { getAuthHeaders, getGlobalCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
 export const listProducts = async ({
@@ -49,8 +49,11 @@ export const listProducts = async ({
     ...(await getAuthHeaders()),
   }
 
+  // Global cache tag (shared across all visitors) + 60s revalidation as a
+  // safety net in case the backend's on-demand revalidate webhook ever fails.
   const next = {
-    ...(await getCacheOptions("products")),
+    ...getGlobalCacheOptions("products"),
+    revalidate: 60,
   }
 
   return sdk.client
@@ -68,7 +71,6 @@ export const listProducts = async ({
         },
         headers,
         next,
-        cache: "force-cache",
       }
     )
     .then(({ products, count }) => {

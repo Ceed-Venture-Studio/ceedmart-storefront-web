@@ -1,3 +1,10 @@
+# REVALIDATE_SECRET is read from substitution _REVALIDATE_SECRET to avoid
+# committing the real secret. Pass it at build time:
+#   gcloud builds submit --config=cloudbuild.yaml \
+#     --substitutions=_REVALIDATE_SECRET=$(cat /path/to/secret)
+substitutions:
+  _REVALIDATE_SECRET: supersecret  # placeholder; override via --substitutions
+
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -11,7 +18,7 @@ steps:
       - "--build-arg"
       - "NEXT_PUBLIC_DEFAULT_REGION=ng"
       - "--build-arg"
-      - "REVALIDATE_SECRET=supersecret"
+      - "REVALIDATE_SECRET=${_REVALIDATE_SECRET}"
       - "-t"
       - "europe-west1-docker.pkg.dev/ceedmart/ceedmart-docker/storefront:latest"
       - "."
@@ -33,7 +40,7 @@ steps:
       - "managed"
       - "--allow-unauthenticated"
       - "--set-env-vars"
-      - "MEDUSA_BACKEND_URL=https://ceedmart-api-870514614467.europe-west1.run.app,REVALIDATE_SECRET=supersecret"
+      - "MEDUSA_BACKEND_URL=https://ceedmart-api-870514614467.europe-west1.run.app,REVALIDATE_SECRET=${_REVALIDATE_SECRET}"
       - "--min-instances"
       - "1"
       - "--max-instances"
