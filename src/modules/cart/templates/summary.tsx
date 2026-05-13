@@ -44,7 +44,7 @@ function buildWhatsAppMessage(cart: HttpTypes.StoreCart) {
   )
 }
 
-const WHATSAPP_NUMBER = "2348066933942"
+const WHATSAPP_NUMBER = "2347087502195"
 
 const Summary = ({ cart }: SummaryProps) => {
   const step = getCheckoutStep(cart)

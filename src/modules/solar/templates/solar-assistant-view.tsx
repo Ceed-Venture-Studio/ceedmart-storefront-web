@@ -237,7 +237,7 @@ export default function SolarAssistantView() {
                 tailored quote.
               </p>
               <a
-                href="https://wa.me/2348000000000"
+                href="https://wa.me/2347087502195"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center h-10 px-5 rounded-base bg-ceedmart-navy text-white text-sm font-semibold hover:bg-ceedmart-navy-light"

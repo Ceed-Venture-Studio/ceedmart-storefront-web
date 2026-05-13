@@ -31,7 +31,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
           </div>
           <div>
             <a
-              href={`https://wa.me/2348066933942?text=${encodeURIComponent("Hello CeedMart, I have a question about my account.")}`}
+              href={`https://wa.me/2347087502195?text=${encodeURIComponent("Hello CeedMart, I have a question about my account.")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover flex items-center gap-2"

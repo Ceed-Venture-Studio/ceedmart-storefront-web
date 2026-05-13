@@ -108,7 +108,7 @@ export default function ProductDetailView({ product, disabled }: Props) {
       parts.push(`Variant: ${selectedVariant.title}.`)
     }
     parts.push("Please confirm availability and pricing.")
-    return `https://wa.me/2348066933942?text=${encodeURIComponent(
+    return `https://wa.me/2347087502195?text=${encodeURIComponent(
       parts.join(" ")
     )}`
   }, [product.title, selectedVariant])

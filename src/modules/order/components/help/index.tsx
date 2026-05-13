@@ -2,11 +2,11 @@ import { Heading } from "@medusajs/ui"
 import React from "react"
 
 const WHATSAPP_URL =
-  "https://wa.me/2348066933942?text=" +
+  "https://wa.me/2347087502195?text=" +
   encodeURIComponent("Hello CeedMart, I need help with my order.")
 
 const RETURNS_URL =
-  "https://wa.me/2348066933942?text=" +
+  "https://wa.me/2347087502195?text=" +
   encodeURIComponent(
     "Hello CeedMart, I would like to enquire about a return or exchange."
   )
