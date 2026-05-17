@@ -1,5 +1,6 @@
 import React, { Suspense } from "react"
 
+import BannerSlot from "@modules/banners/components/banner-slot"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductOnboardingCta from "@modules/products/components/product-onboarding-cta"
 import ProductDetailView from "@modules/products/templates/product-detail-view"
@@ -33,7 +34,16 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           <div className="w-full small:sticky small:top-24 small:col-start-1 small:col-end-2 small:row-start-1 small:row-end-3">
             <ImageGallery images={images} />
           </div>
-          <ProductDetailView product={product} region={region} />
+          <ProductDetailView
+            product={product}
+            region={region}
+            sidebarBanner={
+              <BannerSlot
+                slot="product_sidebar"
+                className="hidden small:block mt-6 rounded-rounded overflow-hidden"
+              />
+            }
+          />
         </div>
       </div>
       <div

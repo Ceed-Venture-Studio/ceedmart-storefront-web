@@ -13,12 +13,14 @@ export default function InfiniteProductGrid({
   countryCode,
   region,
   queryParams,
+  cartLineItems,
 }: {
   initialProducts: HttpTypes.StoreProduct[]
   initialHasMore: boolean
   countryCode: string
   region: HttpTypes.StoreRegion
   queryParams?: Record<string, any>
+  cartLineItems?: HttpTypes.StoreCartLineItem[]
 }) {
   const [products, setProducts] = useState(initialProducts)
   const [page, setPage] = useState(1)
@@ -67,10 +69,14 @@ export default function InfiniteProductGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8">
+      <ul className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-4 gap-y-8">
         {products.map((product) => (
           <li key={product.id}>
-            <ProductCard product={product} region={region} />
+            <ProductCard
+              product={product}
+              region={region}
+              cartLineItems={cartLineItems}
+            />
           </li>
         ))}
       </ul>

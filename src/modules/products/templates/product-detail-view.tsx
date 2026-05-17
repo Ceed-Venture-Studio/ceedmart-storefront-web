@@ -24,6 +24,7 @@ type Props = {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
+  sidebarBanner?: React.ReactNode
 }
 
 const optionsAsKeymap = (
@@ -35,7 +36,11 @@ const optionsAsKeymap = (
   }, {})
 }
 
-export default function ProductDetailView({ product, disabled }: Props) {
+export default function ProductDetailView({
+  product,
+  disabled,
+  sidebarBanner,
+}: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -391,6 +396,7 @@ export default function ProductDetailView({ product, disabled }: Props) {
             </div>
           </div>
         </div>
+        {sidebarBanner}
       </div>
 
       {/* Bottom middle: product information spec table (sits below buy box on mobile, below variants on desktop) */}

@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import InteractiveLink from "@modules/common/components/interactive-link"
+import { listCategories } from "@lib/data/categories"
+import { listCollections } from "@lib/data/collections"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import RefinementList from "@modules/store/components/refinement-list"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -9,7 +10,7 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
 
-export default function CategoryTemplate({
+export default async function CategoryTemplate({
   category,
   sortBy,
   page,
@@ -24,6 +25,11 @@ export default function CategoryTemplate({
   const sort = sortBy || "created_at"
 
   if (!category || !countryCode) notFound()
+
+  const [allCategories, allCollections] = await Promise.all([
+    listCategories(),
+    listCollections({ fields: "id,title,handle" }),
+  ])
 
   const parents = [] as HttpTypes.StoreProductCategory[]
 
@@ -41,7 +47,12 @@ export default function CategoryTemplate({
       className="flex flex-col small:flex-row small:items-start py-6 content-container"
       data-testid="category-container"
     >
-      <RefinementList sortBy={sort} data-testid="sort-by-container" />
+      <RefinementList
+        sortBy={sort}
+        categories={allCategories || []}
+        collections={allCollections?.collections || []}
+        data-testid="sort-by-container"
+      />
       <div className="w-full">
         <div className="flex flex-row mb-8 text-2xl-semi gap-4">
           {parents &&
@@ -64,17 +75,22 @@ export default function CategoryTemplate({
             <p>{category.description}</p>
           </div>
         )}
-        {category.category_children && (
-          <div className="mb-8 text-base-large">
-            <ul className="grid grid-cols-1 gap-2">
-              {category.category_children?.map((c) => (
-                <li key={c.id}>
-                  <InteractiveLink href={`/categories/${c.handle}`}>
-                    {c.name}
-                  </InteractiveLink>
-                </li>
+        {category.category_children && category.category_children.length > 0 && (
+          <div className="mb-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-grey-50 mb-2">
+              Browse subcategories
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {category.category_children.map((c) => (
+                <LocalizedClientLink
+                  key={c.id}
+                  href={`/categories/${c.handle}`}
+                  className="px-4 py-2 rounded-full border border-grey-20 bg-white text-sm font-medium text-grey-80 hover:border-ceedmart-navy hover:text-ceedmart-navy hover:bg-ceedmart-navy/5 hover:shadow-sm transition-all"
+                >
+                  {c.name}
+                </LocalizedClientLink>
               ))}
-            </ul>
+            </div>
           </div>
         )}
         <Suspense

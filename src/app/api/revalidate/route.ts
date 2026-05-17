@@ -21,6 +21,7 @@ const ALLOWED_TAGS = new Set([
   "regions",
   "locales",
   "payment_providers",
+  "banners",
 ])
 
 function readSecret(req: NextRequest): string | null {

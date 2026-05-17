@@ -52,7 +52,7 @@ export default async function Nav() {
                 href="/account"
                 data-testid="nav-account-link"
               >
-                <User className="w-6 h-6" />
+                <User className="w-7 h-7 small:w-8 small:h-8" />
               </LocalizedClientLink>
             </div>
             <div className="hidden small:block">
@@ -63,7 +63,7 @@ export default async function Nav() {
                     href="/cart"
                     data-testid="nav-cart-link"
                   >
-                    <ShoppingBag className="w-6 h-6" />
+                    <ShoppingBag className="w-7 h-7 small:w-8 small:h-8" />
                   </LocalizedClientLink>
                 }
               >

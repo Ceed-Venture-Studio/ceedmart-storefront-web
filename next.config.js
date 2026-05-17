@@ -71,6 +71,16 @@ const nextConfig = {
         hostname: "storage.googleapis.com",
         pathname: "/ceedmart-uploads-prod/**",
       },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/banner_ads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+        pathname: "/banner_ads_dev/**",
+      },
       ...(S3_HOSTNAME && S3_PATHNAME
         ? [
             {

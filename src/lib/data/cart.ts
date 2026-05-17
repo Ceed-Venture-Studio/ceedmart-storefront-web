@@ -137,7 +137,7 @@ export async function addToCart({
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart
+  return await sdk.store.cart
     .createLineItem(
       cart.id,
       {
@@ -147,12 +147,14 @@ export async function addToCart({
       {},
       headers
     )
-    .then(async () => {
+    .then(async ({ cart: updated }) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
 
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
+
+      return updated as HttpTypes.StoreCart
     })
     .catch(medusaError)
 }
@@ -178,14 +180,16 @@ export async function updateLineItem({
     ...(await getAuthHeaders()),
   }
 
-  await sdk.store.cart
+  return await sdk.store.cart
     .updateLineItem(cartId, lineId, { quantity }, {}, headers)
-    .then(async () => {
+    .then(async ({ cart: updated }) => {
       const cartCacheTag = await getCacheTag("carts")
       revalidateTag(cartCacheTag)
 
       const fulfillmentCacheTag = await getCacheTag("fulfillment")
       revalidateTag(fulfillmentCacheTag)
+
+      return updated as HttpTypes.StoreCart
     })
     .catch(medusaError)
 }

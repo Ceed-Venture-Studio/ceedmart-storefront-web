@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useRouter, useParams } from "next/navigation"
 import { useState, FormEvent } from "react"
 
@@ -32,24 +31,7 @@ export default function SearchHero({
 
   return (
     <div className="w-full flex flex-col items-center px-6">
-      <div className="flex flex-col items-center gap-8 w-full max-w-2xl">
-        {/* Logo & Brand */}
-        <div className="flex flex-col items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="CeedMart"
-            width={72}
-            height={72}
-            className="h-[72px] w-[72px]"
-          />
-          <h1 className="text-ceedmart-navy text-3xl font-bold tracking-tight">
-            CeedMart
-          </h1>
-          <p className="text-grey-50 text-base">
-            Wholesale & bulk orders at the best prices
-          </p>
-        </div>
-
+      <div className="flex flex-col items-center gap-8 w-full max-w-3xl">
         {/* Search Input */}
         <form onSubmit={handleSearch} className="w-full">
           <div className="relative w-full">
@@ -96,16 +78,18 @@ export default function SearchHero({
 
         {/* Category Pills */}
         {categories.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => handleCategoryClick(category.handle)}
-                className="px-4 py-2 rounded-full border border-grey-20 bg-white text-sm font-medium text-grey-70 hover:border-ceedmart-navy hover:text-ceedmart-navy hover:bg-ceedmart-navy/5 transition-all cursor-pointer"
-              >
-                {category.name}
-              </button>
-            ))}
+          <div className="w-full -mx-6 px-6 overflow-x-auto small:overflow-visible">
+            <div className="flex small:flex-wrap items-center justify-start small:justify-center gap-2.5 small:gap-3 mt-1 pb-1 min-w-max small:min-w-0">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category.handle)}
+                  className="shrink-0 px-5 py-2.5 rounded-full border border-grey-20 bg-white text-base font-medium text-grey-80 hover:border-ceedmart-navy hover:text-ceedmart-navy hover:bg-ceedmart-navy/5 hover:shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

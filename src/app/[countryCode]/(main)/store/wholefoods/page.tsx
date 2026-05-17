@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
+import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
   WHOLEFOODS_COLLECTION_IDS,
@@ -75,7 +76,7 @@ export default async function WholeFoodsPage(props: Params) {
     )
   }
 
-  const [categories, productsData, region] = await Promise.all([
+  const [categories, productsData, region, cart] = await Promise.all([
     listCategories({ parent_category_id: WHOLEFOODS_CATEGORY_ID }),
     listProducts({
       pageParam: 1,
@@ -83,6 +84,7 @@ export default async function WholeFoodsPage(props: Params) {
       queryParams: { limit: 12, ...wholefoodsProductFilter },
     }),
     getRegion(countryCode),
+    retrieveCart().catch(() => null),
   ])
 
   const wholefoodsCategories = (categories || []).map((c) => ({
@@ -164,6 +166,7 @@ export default async function WholeFoodsPage(props: Params) {
             countryCode={countryCode}
             region={region}
             queryParams={wholefoodsProductFilter}
+            cartLineItems={cart?.items ?? []}
           />
         </section>
       </div>

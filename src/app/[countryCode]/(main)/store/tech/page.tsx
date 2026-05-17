@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
+import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
   TECH_COLLECTION_IDS,
@@ -76,7 +77,7 @@ export default async function TechStorePage(props: Params) {
     )
   }
 
-  const [categories, collectionsData, productsData, region] =
+  const [categories, collectionsData, productsData, region, cart] =
     await Promise.all([
       listCategories(),
       listCollections({ fields: "*products" }),
@@ -86,6 +87,7 @@ export default async function TechStorePage(props: Params) {
         queryParams: { limit: 12, ...techProductFilter },
       }),
       getRegion(countryCode),
+      retrieveCart().catch(() => null),
     ])
 
   // Filter to only tech-related top-level categories
@@ -160,6 +162,7 @@ export default async function TechStorePage(props: Params) {
             countryCode={countryCode}
             region={region}
             queryParams={techProductFilter}
+            cartLineItems={cart?.items ?? []}
           />
         </section>
       </div>

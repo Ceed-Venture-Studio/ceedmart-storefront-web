@@ -1,4 +1,5 @@
 import { listProducts } from "@lib/data/products"
+import { retrieveCart } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
 
@@ -26,6 +27,8 @@ export default async function ProductRail({
     return null
   }
 
+  const cart = await retrieveCart().catch(() => null)
+
   return (
     <div className="content-container py-12 small:py-24">
       <div className="flex justify-between mb-8">
@@ -34,11 +37,16 @@ export default async function ProductRail({
           View all
         </InteractiveLink>
       </div>
-      <ul className="grid grid-cols-2 small:grid-cols-3 gap-x-6 gap-y-24 small:gap-y-36">
+      <ul className="grid grid-cols-2 small:grid-cols-3 gap-x-4 gap-y-8">
         {pricedProducts &&
           pricedProducts.map((product) => (
             <li key={product.id}>
-              <ProductPreview product={product} region={region} isFeatured />
+              <ProductPreview
+                product={product}
+                region={region}
+                isFeatured
+                cartLineItems={cart?.items ?? []}
+              />
             </li>
           ))}
       </ul>

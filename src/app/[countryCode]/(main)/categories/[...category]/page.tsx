@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { getCategoryByHandle, listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
 import { StoreRegion } from "@medusajs/types"
+import BannerSlot from "@modules/banners/components/banner-slot"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
@@ -75,11 +76,17 @@ export default async function CategoryPage(props: Props) {
   }
 
   return (
-    <CategoryTemplate
-      category={productCategory}
-      sortBy={sortBy}
-      page={page}
-      countryCode={params.countryCode}
-    />
+    <>
+      <BannerSlot
+        slot="category_banner"
+        className="content-container pt-4"
+      />
+      <CategoryTemplate
+        category={productCategory}
+        sortBy={sortBy}
+        page={page}
+        countryCode={params.countryCode}
+      />
+    </>
   )
 }

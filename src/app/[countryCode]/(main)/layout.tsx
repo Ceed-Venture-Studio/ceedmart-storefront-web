@@ -9,6 +9,7 @@ import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import MobileNavWrapper from "@modules/layout/components/mobile-bottom-nav/mobile-nav-wrapper"
 import Nav from "@modules/layout/templates/nav"
+import BannerSlot from "@modules/banners/components/banner-slot"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
 
   return (
     <>
+      <BannerSlot slot="promo_strip" />
       <Nav />
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
