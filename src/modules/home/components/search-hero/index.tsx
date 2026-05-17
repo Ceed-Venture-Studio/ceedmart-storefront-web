@@ -9,10 +9,18 @@ type Category = {
   handle: string
 }
 
+type ExtraPill = {
+  id: string
+  name: string
+  href: string // pre-resolved path relative to country root (e.g. "/collections/foo")
+}
+
 export default function SearchHero({
   categories,
+  extras = [],
 }: {
   categories: Category[]
+  extras?: ExtraPill[]
 }) {
   const [query, setQuery] = useState("")
   const router = useRouter()
@@ -27,6 +35,10 @@ export default function SearchHero({
 
   const handleCategoryClick = (handle: string) => {
     router.push(`/${countryCode}/categories/${handle}`)
+  }
+
+  const handleExtraClick = (href: string) => {
+    router.push(`/${countryCode}${href}`)
   }
 
   return (
@@ -77,7 +89,7 @@ export default function SearchHero({
         </form>
 
         {/* Category Pills */}
-        {categories.length > 0 && (
+        {(categories.length > 0 || extras.length > 0) && (
           <div className="w-full -mx-6 px-6 overflow-x-auto small:overflow-visible">
             <div className="flex small:flex-wrap items-center justify-start small:justify-center gap-2.5 small:gap-3 mt-1 pb-1 min-w-max small:min-w-0">
               {categories.map((category) => (
@@ -87,6 +99,15 @@ export default function SearchHero({
                   className="shrink-0 px-5 py-2.5 rounded-full border border-grey-20 bg-white text-base font-medium text-grey-80 hover:border-ceedmart-navy hover:text-ceedmart-navy hover:bg-ceedmart-navy/5 hover:shadow-sm transition-all cursor-pointer whitespace-nowrap"
                 >
                   {category.name}
+                </button>
+              ))}
+              {extras.map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => handleExtraClick(pill.href)}
+                  className="shrink-0 px-5 py-2.5 rounded-full border border-ceedmart-gold/60 bg-ceedmart-gold/15 text-base font-medium text-ceedmart-navy hover:border-ceedmart-gold hover:bg-ceedmart-gold/25 hover:shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                >
+                  {pill.name}
                 </button>
               ))}
             </div>

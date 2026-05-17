@@ -8,14 +8,16 @@ import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
   TECH_COLLECTION_IDS,
+  TECH_COLLECTION_HANDLES,
   TECH_CATEGORY_IDS,
+  TECH_CATEGORY_HANDLES,
 } from "@lib/data/store-config"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
-import CollectionsCarousel from "@modules/home/components/collections-carousel"
+import CollectionsRichGrid from "@modules/home/components/collections-rich-grid"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 import PromoBanner from "@modules/home/components/promo-banner"
@@ -90,18 +92,27 @@ export default async function TechStorePage(props: Params) {
       retrieveCart().catch(() => null),
     ])
 
-  // Filter to only tech-related top-level categories
+  // Filter to tech top-level categories by id, plus any extras matched by
+  // handle (lets admin publish e.g. "solar-power-packages" without a code change).
   const techCategories = (categories || [])
-    .filter((c) => !c.parent_category && TECH_CATEGORY_IDS.includes(c.id))
+    .filter(
+      (c) =>
+        !c.parent_category &&
+        (TECH_CATEGORY_IDS.includes(c.id) ||
+          TECH_CATEGORY_HANDLES.includes(c.handle ?? ""))
+    )
     .map((c) => ({
       id: c.id,
       name: c.name,
       handle: c.handle,
     }))
 
-  // Filter to only tech-related collections
-  const techCollections = (collectionsData?.collections || []).filter((c) =>
-    TECH_COLLECTION_IDS.includes(c.id)
+  // Filter to tech-related collections by id, plus any extras matched by
+  // handle (lets admin publish e.g. "solar-packages" without a code change).
+  const techCollections = (collectionsData?.collections || []).filter(
+    (c) =>
+      TECH_COLLECTION_IDS.includes(c.id) ||
+      TECH_COLLECTION_HANDLES.includes(c.handle ?? "")
   )
 
   const { products } = productsData.response
@@ -144,7 +155,7 @@ export default async function TechStorePage(props: Params) {
       </div>
 
       <div className="content-container py-6 flex flex-col gap-4">
-        <CollectionsCarousel collections={techCollections} />
+        <CollectionsRichGrid collections={techCollections} limit={6} />
 
         <CategoriesCarousel categories={techCategories} />
 

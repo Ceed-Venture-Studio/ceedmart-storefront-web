@@ -22,26 +22,36 @@ const nextConfig = {
       fullUrl: true,
     },
   },
-  headers: async () => [
-    {
-      source: "/:path*",
-      headers: [
-        {
-          key: "Cache-Control",
-          value: "public, max-age=0, must-revalidate",
-        },
-      ],
-    },
-    {
-      source: "/_next/static/:path*",
-      headers: [
-        {
-          key: "Cache-Control",
-          value: "public, max-age=31536000, immutable",
-        },
-      ],
-    },
-  ],
+  headers: async () => {
+    // In dev Turbopack can write new content to the same chunk URL, so an
+    // "immutable" cache traps browsers on stale bundles and causes hydration
+    // mismatches after edits. Apply the long-cache header only in production.
+    const staticCacheValue =
+      process.env.NODE_ENV === "production"
+        ? "public, max-age=31536000, immutable"
+        : "no-store, must-revalidate"
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: staticCacheValue,
+          },
+        ],
+      },
+    ]
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

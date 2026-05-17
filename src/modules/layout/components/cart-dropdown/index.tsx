@@ -107,7 +107,7 @@ const CartDropdown = ({
         >
           <PopoverPanel
             static
-            className="hidden small:block absolute top-[calc(100%+1px)] right-0 bg-white border-x border-b border-gray-200 w-[420px] text-ui-fg-base"
+            className="hidden small:block absolute top-[calc(100%+1px)] right-0 bg-white border-x border-b border-gray-200 w-[440px] max-w-[calc(100vw-1rem)] text-ui-fg-base shadow-lg"
             data-testid="nav-cart-dropdown"
           >
             <div className="p-4 flex items-center justify-center">
@@ -124,13 +124,13 @@ const CartDropdown = ({
                     })
                     .map((item) => (
                       <div
-                        className="grid grid-cols-[122px_1fr] gap-x-4"
+                        className="grid grid-cols-[88px_1fr] gap-x-3"
                         key={item.id}
                         data-testid="cart-item"
                       >
                         <LocalizedClientLink
                           href={`/products/${item.product_handle}`}
-                          className="w-24"
+                          className="block"
                         >
                           <Thumbnail
                             thumbnail={item.thumbnail}
@@ -138,42 +138,44 @@ const CartDropdown = ({
                             size="square"
                           />
                         </LocalizedClientLink>
-                        <div className="flex flex-col justify-between flex-1">
-                          <div className="flex flex-col flex-1">
-                            <div className="flex items-start justify-between">
-                              <div className="flex flex-col overflow-ellipsis whitespace-nowrap mr-4 w-[180px]">
-                                <h3 className="text-base-regular overflow-hidden text-ellipsis">
-                                  <LocalizedClientLink
-                                    href={`/products/${item.product_handle}`}
-                                    data-testid="product-link"
-                                  >
-                                    {item.title}
-                                  </LocalizedClientLink>
-                                </h3>
-                                <LineItemOptions
-                                  variant={item.variant}
-                                  data-testid="cart-item-variant"
-                                  data-value={item.variant}
-                                />
-                                <span
-                                  data-testid="cart-item-quantity"
-                                  data-value={item.quantity}
+                        <div className="flex flex-col justify-between min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <h3 className="text-base-regular truncate">
+                                <LocalizedClientLink
+                                  href={`/products/${item.product_handle}`}
+                                  data-testid="product-link"
                                 >
-                                  Quantity: {item.quantity}
-                                </span>
-                              </div>
-                              <div className="flex justify-end">
-                                <LineItemPrice
-                                  item={item}
-                                  style="tight"
-                                  currencyCode={cartState.currency_code}
-                                />
-                              </div>
+                                  {item.title}
+                                </LocalizedClientLink>
+                              </h3>
+                              <LineItemOptions
+                                variant={item.variant}
+                                data-testid="cart-item-variant"
+                                data-value={item.variant}
+                              />
+                              <span
+                                className="text-sm text-ui-fg-subtle"
+                                data-testid="cart-item-quantity"
+                                data-value={item.quantity}
+                              >
+                                Qty: {item.quantity}
+                              </span>
+                            </div>
+                            <div
+                              className="shrink-0 text-right whitespace-nowrap"
+                              data-testid="cart-item-price"
+                            >
+                              <LineItemPrice
+                                item={item}
+                                style="tight"
+                                currencyCode={cartState.currency_code}
+                              />
                             </div>
                           </div>
                           <DeleteButton
                             id={item.id}
-                            className="mt-1"
+                            className="mt-1 self-start"
                             data-testid="cart-item-remove-button"
                           >
                             Remove

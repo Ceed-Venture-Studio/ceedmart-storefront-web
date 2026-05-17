@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import { listCategories } from "@lib/data/categories"
 import { listBanners } from "@lib/data/banners"
+import { SOLAR_PACKAGES_COLLECTION_HANDLE } from "@lib/data/store-config"
 import BannerSlot from "@modules/banners/components/banner-slot"
 import SearchHero from "@modules/home/components/search-hero"
 import StoreCards from "@modules/home/components/store-cards"
@@ -62,12 +63,30 @@ export default async function Home(props: Props) {
 
           {/* Floating search + pills */}
           <div className="absolute inset-0 flex items-end small:items-center justify-center pb-6 small:pb-0">
-            <SearchHero categories={topLevelCategories} />
+            <SearchHero
+            categories={topLevelCategories}
+            extras={[
+              {
+                id: "solar-power-packages",
+                name: "Solar Power Packages",
+                href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
+              },
+            ]}
+          />
           </div>
         </section>
       ) : (
         <div className="w-full flex justify-center px-6 pt-10 small:pt-14">
-          <SearchHero categories={topLevelCategories} />
+          <SearchHero
+            categories={topLevelCategories}
+            extras={[
+              {
+                id: "solar-power-packages",
+                name: "Solar Power Packages",
+                href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
+              },
+            ]}
+          />
         </div>
       )}
 
