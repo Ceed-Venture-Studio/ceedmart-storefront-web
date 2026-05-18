@@ -34,8 +34,8 @@ export const TECH_CATEGORY_IDS = [
 // admin can publish new ones without a redeploy.
 export const TECH_CATEGORY_HANDLES = ["solar-power-packages"]
 
-// Bohemian cane & home furniture. Backfill with real IDs in admin —
-// while these are empty the page falls back to listing all products
-// matching the parent category handle.
-export const HOME_FURNITURE_COLLECTION_IDS: string[] = []
-export const HOME_FURNITURE_CATEGORY_HANDLE = "home-furniture"
+// Patio furniture — rattan dining/sitting sets, swings, etc. The page
+// resolves products via the collection handle first (preferred), falling
+// back to the parent category handle if the collection is not yet created.
+export const PATIO_FURNITURE_COLLECTION_HANDLE = "patio-furniture"
+export const PATIO_FURNITURE_CATEGORY_HANDLE = "patio-furniture"

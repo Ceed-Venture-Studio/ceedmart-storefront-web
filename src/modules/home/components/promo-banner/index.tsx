@@ -91,16 +91,16 @@ const PromoBanner = ({ variant }: PromoBannerProps) => {
 
           <div className="flex-1 text-center small:text-left">
             <h2 className="text-white text-xl small:text-2xl font-bold mb-1">
-              Bohemian Cane & Handcrafted Home Furniture
+              Rattan Patio Furniture for Indoors & Out
             </h2>
             <p className="text-white/85 text-sm small:text-base max-w-md">
-              Handwoven cane chairs, lounge sets & lifestyle pieces — bulk
-              pricing for resellers, hotels & interior projects.
+              Rattan dining & sitting sets, swings and more — bulk pricing for
+              resellers, hotels & interior projects.
             </p>
           </div>
 
           <LocalizedClientLink
-            href="/store/home-furniture"
+            href="/store/patio-furniture"
             className="flex-shrink-0 px-6 py-3 rounded-full bg-white text-amber-800 font-semibold text-sm hover:bg-amber-50 transition-colors"
           >
             Order Wholesale

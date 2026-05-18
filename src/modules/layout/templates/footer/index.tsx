@@ -193,8 +193,8 @@ export default async function Footer() {
                 <FooterLink href="/store/tech">Electronics & Solar</FooterLink>
               </li>
               <li>
-                <FooterLink href="/store/home-furniture">
-                  Home Furniture
+                <FooterLink href="/store/patio-furniture">
+                  Patio Furniture
                 </FooterLink>
               </li>
               <li>

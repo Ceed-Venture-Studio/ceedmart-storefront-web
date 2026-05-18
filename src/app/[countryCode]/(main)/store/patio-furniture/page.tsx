@@ -2,12 +2,13 @@ import { Metadata } from "next"
 import { Suspense } from "react"
 
 import { listCategories, getCategoryByHandle } from "@lib/data/categories"
+import { getCollectionByHandle } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
-  HOME_FURNITURE_COLLECTION_IDS,
-  HOME_FURNITURE_CATEGORY_HANDLE,
+  PATIO_FURNITURE_COLLECTION_HANDLE,
+  PATIO_FURNITURE_CATEGORY_HANDLE,
 } from "@lib/data/store-config"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import RefinementList from "@modules/store/components/refinement-list"
@@ -19,9 +20,9 @@ import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 import PromoBanner from "@modules/home/components/promo-banner"
 
 export const metadata: Metadata = {
-  title: "Home Furniture | CeedMart",
+  title: "Patio Furniture | CeedMart",
   description:
-    "Handwoven cane furniture, bohemian decor & lifestyle pieces — wholesale & bulk pricing at CeedMart.",
+    "Rattan dining & sitting sets, swings and more — outdoor & patio furniture at wholesale & bulk pricing.",
 }
 
 type Params = {
@@ -35,17 +36,23 @@ type Params = {
   }>
 }
 
-// Try to resolve the parent furniture category by handle so we can pull its
-// children. Returns null silently when the admin hasn't created it yet.
-async function resolveCategory() {
+async function resolveCollection() {
   try {
-    return await getCategoryByHandle([HOME_FURNITURE_CATEGORY_HANDLE])
+    return await getCollectionByHandle(PATIO_FURNITURE_COLLECTION_HANDLE)
   } catch {
     return null
   }
 }
 
-export default async function HomeFurniturePage(props: Params) {
+async function resolveCategory() {
+  try {
+    return await getCategoryByHandle([PATIO_FURNITURE_CATEGORY_HANDLE])
+  } catch {
+    return null
+  }
+}
+
+export default async function PatioFurniturePage(props: Params) {
   const params = await props.params
   const searchParams = await props.searchParams
   const { sortBy, page, q } = searchParams
@@ -55,12 +62,16 @@ export default async function HomeFurniturePage(props: Params) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
 
-  // Build the product filter. Collections take priority; otherwise filter by
-  // the parent category id (resolved by handle) when available.
-  const parentCategory = await resolveCategory()
+  // Prefer collection when present; fall back to category-by-handle. Either
+  // can be populated in admin without a redeploy.
+  const [collection, parentCategory] = await Promise.all([
+    resolveCollection(),
+    resolveCategory(),
+  ])
+
   const productFilter: Record<string, any> = {}
-  if (HOME_FURNITURE_COLLECTION_IDS.length > 0) {
-    productFilter.collection_id = HOME_FURNITURE_COLLECTION_IDS
+  if (collection?.id) {
+    productFilter.collection_id = [collection.id]
   } else if (parentCategory?.id) {
     productFilter.category_id = [parentCategory.id]
   }
@@ -84,6 +95,7 @@ export default async function HomeFurniturePage(props: Params) {
               page={pageNumber}
               countryCode={countryCode}
               q={q}
+              collectionId={collection?.id}
               categoryIds={parentCategory?.id ? [parentCategory.id] : undefined}
             />
           </Suspense>
@@ -105,7 +117,7 @@ export default async function HomeFurniturePage(props: Params) {
     retrieveCart().catch(() => null),
   ])
 
-  const furnitureCategories = (subCategories || []).map((c: any) => ({
+  const patioCategories = (subCategories || []).map((c: any) => ({
     id: c.id,
     name: c.name,
     handle: c.handle,
@@ -118,7 +130,7 @@ export default async function HomeFurniturePage(props: Params) {
 
   return (
     <div className="flex flex-col gap-0 bg-amber-50 min-h-screen">
-      {/* Bohemian / amber-themed header */}
+      {/* Rattan / amber-themed header */}
       <div className="w-full bg-gradient-to-br from-amber-800 via-amber-600 to-orange-400 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full" />
@@ -143,15 +155,15 @@ export default async function HomeFurniturePage(props: Params) {
               />
             </svg>
             <span className="text-amber-100 text-sm font-semibold uppercase tracking-widest">
-              Bohemian & Cane
+              Rattan & Outdoor
             </span>
           </div>
           <h1 className="text-white text-3xl small:text-5xl font-bold drop-shadow-sm">
-            Home Furniture
+            Patio Furniture
           </h1>
           <p className="text-white/85 text-base small:text-lg mt-3 max-w-lg">
-            Handwoven cane chairs, bohemian decor & lifestyle pieces —
-            handcrafted, wholesale-priced for homes, resellers, and projects.
+            Rattan dining & sitting sets, swings and more — wholesale-priced
+            outdoor & patio pieces for homes, resellers, and hospitality.
           </p>
           <div className="mt-6 max-w-xl">
             <SearchBar buttonClassName="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-amber-800 text-white flex items-center justify-center hover:bg-amber-900 transition-colors" />
@@ -160,8 +172,8 @@ export default async function HomeFurniturePage(props: Params) {
       </div>
 
       <div className="content-container py-6 flex flex-col gap-4">
-        {furnitureCategories.length > 0 && (
-          <CategoriesCarousel categories={furnitureCategories} />
+        {patioCategories.length > 0 && (
+          <CategoriesCarousel categories={patioCategories} />
         )}
 
         <div className="mt-4">
@@ -177,7 +189,7 @@ export default async function HomeFurniturePage(props: Params) {
             >
               <path d="M4 6h12v2H4V6zm-1 4h14v6h-2v-4H5v4H3v-6zm2 6h1v2H5v-2zm9 0h1v2h-1v-2z" />
             </svg>
-            All Home Furniture
+            All Patio Furniture
           </h2>
           <InfiniteProductGrid
             initialProducts={products}
