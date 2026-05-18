@@ -155,7 +155,7 @@ export default async function PatioFurniturePage(props: Params) {
               />
             </svg>
             <span className="text-amber-100 text-sm font-semibold uppercase tracking-widest">
-              Rattan & Outdoor
+              Indoor & Outdoor
             </span>
           </div>
           <h1 className="text-white text-3xl small:text-5xl font-bold drop-shadow-sm">

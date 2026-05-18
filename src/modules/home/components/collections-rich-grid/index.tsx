@@ -13,6 +13,13 @@ type CollectionWithProducts = HttpTypes.StoreCollection & {
   products?: HttpTypes.StoreProduct[]
 }
 
+const resolveImage = (product?: HttpTypes.StoreProduct): string | null => {
+  if (!product) return null
+  if (product.thumbnail) return product.thumbnail
+  const firstImage = product.images?.find((i) => i?.url)
+  return firstImage?.url ?? null
+}
+
 const Tile = ({
   product,
   sizes,
@@ -20,13 +27,14 @@ const Tile = ({
   product?: HttpTypes.StoreProduct
   sizes: string
 }) => {
-  if (!product?.thumbnail) {
+  const url = resolveImage(product)
+  if (!url) {
     return <div className="w-full h-full bg-grey-10" />
   }
   return (
     <Image
-      src={product.thumbnail}
-      alt={product.title ?? ""}
+      src={url}
+      alt={product?.title ?? ""}
       fill
       sizes={sizes}
       className="object-cover"

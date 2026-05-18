@@ -22,7 +22,11 @@ export default function SearchBar({
   }
 
   return (
-    <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
+    <form
+      onSubmit={handleSearch}
+      className="w-full max-w-2xl mx-auto"
+      data-hero-search
+    >
       <div className="relative w-full">
         <svg
           className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-grey-40"

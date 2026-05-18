@@ -9,6 +9,7 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import BrandText from "@modules/layout/components/brand-text"
 import CartButton from "@modules/layout/components/cart-button"
+import NavSearchSlot from "@modules/layout/components/nav-search-slot"
 import SideMenu from "@modules/layout/components/side-menu"
 
 export default async function Nav() {
@@ -46,6 +47,7 @@ export default async function Nav() {
           </div>
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
+            <NavSearchSlot />
             <div className="hidden small:flex items-center gap-x-6 h-full">
               <LocalizedClientLink
                 className="hover:text-ceedmart-navy"

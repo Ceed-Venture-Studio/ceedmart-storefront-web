@@ -4,7 +4,7 @@ import { HttpTypes } from "@medusajs/types"
 import { clx } from "@medusajs/ui"
 import { isEqual } from "lodash"
 import { useParams } from "next/navigation"
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 
 import { addToCart, deleteLineItem, updateLineItem } from "@lib/data/cart"
 import { getProductPrice } from "@lib/util/get-product-price"
@@ -82,6 +82,19 @@ export default function ProductCard({
   })
 
   const [isPending, startTransition] = useTransition()
+
+  // Time-aware delivery message. Renders the neutral default during SSR
+  // and on first paint, then swaps to a "today / tomorrow" line after mount
+  // based on the visitor's local clock — avoids hydration mismatches.
+  const [deliveryMsg, setDeliveryMsg] = useState<string | null>(null)
+  useEffect(() => {
+    const hour = new Date().getHours()
+    setDeliveryMsg(
+      hour < 14
+        ? "Get it today — order by 2pm · Lagos & Port Harcourt"
+        : "Get it tomorrow · Lagos & Port Harcourt"
+    )
+  }, [])
 
   const selectedVariant = useMemo(() => {
     if (!product.variants?.length) return undefined
@@ -274,7 +287,7 @@ export default function ProductCard({
         )}
 
         <p className="text-xs text-grey-60">
-          Free delivery in Lagos & Port Harcourt
+          {deliveryMsg ?? "Free delivery in Lagos & Port Harcourt"}
         </p>
 
         {hasOptions && (product.options ?? []).length > 0 && (

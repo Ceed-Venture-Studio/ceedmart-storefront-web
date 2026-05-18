@@ -91,20 +91,28 @@ const PromoBanner = ({ variant }: PromoBannerProps) => {
 
           <div className="flex-1 text-center small:text-left">
             <h2 className="text-white text-xl small:text-2xl font-bold mb-1">
-              Rattan Patio Furniture for Indoors & Out
+              Explore more from CeedMart
             </h2>
             <p className="text-white/85 text-sm small:text-base max-w-md">
-              Rattan dining & sitting sets, swings and more — bulk pricing for
-              resellers, hotels & interior projects.
+              Fresh whole foods, electronics & solar — quality products at
+              great prices, all under one roof.
             </p>
           </div>
 
-          <LocalizedClientLink
-            href="/store/patio-furniture"
-            className="flex-shrink-0 px-6 py-3 rounded-full bg-white text-amber-800 font-semibold text-sm hover:bg-amber-50 transition-colors"
-          >
-            Order Wholesale
-          </LocalizedClientLink>
+          <div className="flex-shrink-0 flex flex-col gap-2 items-center small:items-end">
+            <LocalizedClientLink
+              href="/store/wholefoods"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-amber-800 font-semibold text-sm hover:bg-amber-50 transition-colors whitespace-nowrap"
+            >
+              Shop Whole Foods
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/store/tech"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white/15 text-white border border-white/40 font-semibold text-sm hover:bg-white/25 transition-colors whitespace-nowrap"
+            >
+              Shop Solar Power & Security
+            </LocalizedClientLink>
+          </div>
         </div>
       </div>
     )

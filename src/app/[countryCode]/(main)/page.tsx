@@ -8,9 +8,10 @@ import SearchHero from "@modules/home/components/search-hero"
 import StoreCards from "@modules/home/components/store-cards"
 
 export const metadata: Metadata = {
-  title: "CeedMart - Wholesale & Bulk Orders",
+  title:
+    "CeedMart — Whole Foods, Electronics, Solar & Patio Furniture at Great Prices",
   description:
-    "Wholesale prices on bulk orders. Fresh foods, tech, gadgets & more — direct from CeedMart.",
+    "Shop quality whole foods, electronics, solar systems, patio furniture and more at great prices. Free delivery in Lagos & Port Harcourt.",
 }
 
 type Props = {
@@ -64,15 +65,16 @@ export default async function Home(props: Props) {
           {/* Floating search + pills */}
           <div className="absolute inset-0 flex items-end small:items-center justify-center pb-6 small:pb-0">
             <SearchHero
-            categories={topLevelCategories}
-            extras={[
-              {
-                id: "solar-power-packages",
-                name: "Solar Power Packages",
-                href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
-              },
-            ]}
-          />
+              categories={topLevelCategories}
+              tone="light"
+              extras={[
+                {
+                  id: "solar-power-packages",
+                  name: "Solar Power Packages",
+                  href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
+                },
+              ]}
+            />
           </div>
         </section>
       ) : (

@@ -23,9 +23,9 @@ import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 import PromoBanner from "@modules/home/components/promo-banner"
 
 export const metadata: Metadata = {
-  title: "Electronics & Solar | CeedMart",
+  title: "Solar Power & Security | CeedMart",
   description:
-    "Wholesale electronics, gadgets, CCTV, solar & power solutions — bulk orders at CeedMart.",
+    "Solar systems, inverters, batteries and CCTV security — quality power and security solutions at great prices on CeedMart.",
 }
 
 type Params = {
@@ -82,7 +82,12 @@ export default async function TechStorePage(props: Params) {
   const [categories, collectionsData, productsData, region, cart] =
     await Promise.all([
       listCategories(),
-      listCollections({ fields: "*products" }),
+      // Explicit product fields — "*products" alone doesn't return thumbnails
+      // or images, which the collection card collage falls back to.
+      listCollections({
+        fields:
+          "id,title,handle,products.id,products.title,products.thumbnail,products.images.url",
+      }),
       listProducts({
         pageParam: 1,
         countryCode,
@@ -139,14 +144,15 @@ export default async function TechStorePage(props: Params) {
               <line x1="10" y1="24" x2="22" y2="24" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <span className="text-tech-light text-sm font-semibold uppercase tracking-widest">
-              Wholesale Electronics
+              Power & Security
             </span>
           </div>
           <h1 className="text-white text-3xl small:text-5xl font-bold drop-shadow-sm">
-            Electronics & Solar
+            Solar Power & Security
           </h1>
           <p className="text-white/80 text-base small:text-lg mt-3 max-w-lg">
-            Wholesale electronics, gadgets, CCTV, solar & power solutions — bulk pricing for businesses and resellers.
+            Power your home or business and keep it safe. Solar systems,
+            inverters, batteries and CCTV — quality kit at great prices.
           </p>
           <div className="mt-6 max-w-xl">
             <SearchBar />
@@ -165,7 +171,7 @@ export default async function TechStorePage(props: Params) {
 
         <section className="mt-8">
           <h2 className="text-lg font-bold text-grey-90 mb-6">
-            All Electronics & Solar
+            All Solar Power & Security
           </h2>
           <InfiniteProductGrid
             initialProducts={products}

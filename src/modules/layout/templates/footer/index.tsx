@@ -107,9 +107,9 @@ export default async function Footer() {
               </span>
             </LocalizedClientLink>
             <p className="text-ui-fg-subtle text-sm leading-relaxed">
-              Wholesale & bulk orders across whole foods, electronics, solar,
-              and home furniture — direct from CeedMart with fast Lagos &
-              Port Harcourt delivery.
+              Quality products at great prices — whole foods, electronics,
+              solar systems, patio furniture and more. Fast delivery in
+              Lagos & Port Harcourt.
             </p>
 
             <div className="flex flex-col gap-2 mt-2 text-sm text-ui-fg-subtle">
@@ -190,7 +190,7 @@ export default async function Footer() {
                 <FooterLink href="/store/wholefoods">Whole Foods</FooterLink>
               </li>
               <li>
-                <FooterLink href="/store/tech">Electronics & Solar</FooterLink>
+                <FooterLink href="/store/tech">Solar Power & Security</FooterLink>
               </li>
               <li>
                 <FooterLink href="/store/patio-furniture">

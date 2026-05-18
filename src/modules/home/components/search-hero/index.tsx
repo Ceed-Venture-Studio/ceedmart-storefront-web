@@ -15,13 +15,18 @@ type ExtraPill = {
   href: string // pre-resolved path relative to country root (e.g. "/collections/foo")
 }
 
+type Tone = "light" | "dark"
+
 export default function SearchHero({
   categories,
   extras = [],
+  tone = "dark",
 }: {
   categories: Category[]
   extras?: ExtraPill[]
+  tone?: Tone
 }) {
+  const isLight = tone === "light"
   const [query, setQuery] = useState("")
   const router = useRouter()
   const { countryCode } = useParams()
@@ -43,9 +48,35 @@ export default function SearchHero({
 
   return (
     <div className="w-full flex flex-col items-center px-6">
-      <div className="flex flex-col items-center gap-8 w-full max-w-3xl">
+      <div className="flex flex-col items-center gap-5 small:gap-6 w-full max-w-3xl">
+        {/* Slogan + SEO caption */}
+        <div className="flex flex-col items-center text-center gap-1">
+          <p
+            className={
+              isLight
+                ? "text-white text-base small:text-lg font-semibold drop-shadow-sm"
+                : "text-ceedmart-navy text-base small:text-lg font-semibold"
+            }
+          >
+            Quality products, great prices…
+          </p>
+          <h1
+            className={
+              isLight
+                ? "text-white/90 text-sm small:text-base font-medium drop-shadow-sm"
+                : "text-grey-70 text-sm small:text-base font-medium"
+            }
+          >
+            Whole Foods · Electronics · Solar · Patio Furniture & more
+          </h1>
+        </div>
+
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="w-full">
+        <form
+          onSubmit={handleSearch}
+          className="w-full"
+          data-hero-search
+        >
           <div className="relative w-full">
             <svg
               className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-grey-40"
@@ -64,7 +95,7 @@ export default function SearchHero({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products for wholesale & bulk orders..."
+              placeholder="Search whole foods, electronics, solar, furniture…"
               className="w-full h-14 pl-12 pr-14 rounded-full border-2 border-grey-20 bg-white text-base text-grey-90 placeholder:text-grey-40 focus:outline-none focus:border-ceedmart-navy transition-colors shadow-sm hover:shadow-md focus:shadow-md"
             />
             <button

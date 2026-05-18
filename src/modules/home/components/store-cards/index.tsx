@@ -51,10 +51,10 @@ const cards: StoreCard[] = [
   },
   {
     href: "/store/tech",
-    eyebrow: "Wholesale Electronics",
-    title: "Electronics & Solar",
-    desc: "Bulk electronics, gadgets, CCTV, solar & power solutions",
-    cta: "Explore Electronics & Solar",
+    eyebrow: "Power & Security",
+    title: "Solar Power & Security",
+    desc: "Solar systems, inverters, batteries & CCTV — power your space and keep it safe",
+    cta: "Explore Solar Power & Security",
     gradient: "from-tech-dark via-tech to-tech-light",
     titleColor: "text-white",
     iconColor: "text-white",
@@ -68,7 +68,7 @@ const cards: StoreCard[] = [
   },
   {
     href: "/store/patio-furniture",
-    eyebrow: "Rattan & Outdoor",
+    eyebrow: "Indoor & Outdoor",
     title: "Patio Furniture",
     desc: "Rattan dining & sitting sets, swings and more",
     cta: "Explore Patio Furniture",
@@ -85,10 +85,24 @@ const cards: StoreCard[] = [
   },
 ]
 
-export default function StoreCards() {
+export default function StoreCards({
+  excludeHrefs = [],
+}: {
+  excludeHrefs?: string[]
+} = {}) {
+  const shown = cards.filter((c) => !excludeHrefs.includes(c.href))
+  if (shown.length === 0) return null
+
+  const gridCols =
+    shown.length === 1
+      ? "small:grid-cols-1"
+      : shown.length === 2
+        ? "small:grid-cols-2"
+        : "small:grid-cols-3"
+
   return (
-    <div className="grid grid-cols-1 small:grid-cols-3 gap-4 w-full max-w-6xl">
-      {cards.map((c) => (
+    <div className={`grid grid-cols-1 ${gridCols} gap-4 w-full max-w-6xl`}>
+      {shown.map((c) => (
         <LocalizedClientLink
           key={c.href}
           href={c.href}
