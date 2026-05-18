@@ -7,6 +7,7 @@ type StoreCard = {
   eyebrow: string
   title: string
   desc: string
+  cta?: string
   gradient: string
   titleColor: string
   iconColor: string
@@ -53,6 +54,7 @@ const cards: StoreCard[] = [
     eyebrow: "Wholesale Electronics",
     title: "Electronics & Solar",
     desc: "Bulk electronics, gadgets, CCTV, solar & power solutions",
+    cta: "Explore Electronics & Solar",
     gradient: "from-tech-dark via-tech to-tech-light",
     titleColor: "text-white",
     iconColor: "text-white",
@@ -69,6 +71,7 @@ const cards: StoreCard[] = [
     eyebrow: "Rattan & Outdoor",
     title: "Patio Furniture",
     desc: "Rattan dining & sitting sets, swings and more",
+    cta: "Explore Patio Furniture",
     gradient: "from-amber-800 via-amber-600 to-orange-400",
     titleColor: "text-white",
     iconColor: "text-amber-100",
@@ -110,7 +113,7 @@ export default function StoreCards() {
             <p className="text-white/85 text-sm mt-2 max-w-[220px]">{c.desc}</p>
           </div>
           <div className="flex items-center gap-2 text-white font-semibold text-sm mt-4 group-hover:gap-3 transition-all">
-            Order in bulk
+            {c.cta ?? "Order in bulk"}
             <ArrowIcon />
           </div>
         </LocalizedClientLink>
