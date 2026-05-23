@@ -147,9 +147,15 @@ export async function middleware(request: NextRequest) {
   const urlHasCountryCode =
     countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
 
+  // Expose the resolved pathname to server components via a request header
+  // so layouts can branch on the current URL (e.g. hide chrome on the
+  // pre-launch landing page).
+  const passthroughHeaders = new Headers(request.headers)
+  passthroughHeaders.set("x-pathname", request.nextUrl.pathname)
+
   // if one of the country codes is in the url and the cache id is set, return next
   if (urlHasCountryCode && cacheIdCookie) {
-    return NextResponse.next()
+    return NextResponse.next({ request: { headers: passthroughHeaders } })
   }
 
   // if one of the country codes is in the url and the cache id is not set, set the cache id and redirect
