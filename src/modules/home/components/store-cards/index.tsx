@@ -37,7 +37,7 @@ const cards: StoreCard[] = [
     href: "/store/wholefoods",
     eyebrow: "Fresh & Organic",
     title: "Whole Foods",
-    desc: "Bulk groceries, organic produce & wholesale essentials",
+    desc: "Wholesale & bulk orders of fresh organic farm produce and whole foods",
     gradient: "from-wholefoods-dark via-wholefoods to-wholefoods-accent",
     titleColor: "text-ceedmart-gold",
     iconColor: "text-wholefoods-light",
