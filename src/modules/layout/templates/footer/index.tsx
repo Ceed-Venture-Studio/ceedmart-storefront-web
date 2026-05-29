@@ -233,6 +233,27 @@ export default async function Footer() {
             </div>
           )}
 
+          {/* Legal */}
+          <div className="col-span-6 md:col-span-2">
+            <Column title="Legal">
+              <li>
+                <FooterLink href="/legal/privacy">Privacy Policy</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/legal/terms">Terms of Use</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/legal/refund">Refund Policy</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/legal/shipping">Shipping Policy</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/legal/cookies">Cookie Policy</FooterLink>
+              </li>
+            </Column>
+          </div>
+
           {/* Support */}
           <div className="col-span-6 md:col-span-2 lg:col-span-3">
             <Column title="Customer service">

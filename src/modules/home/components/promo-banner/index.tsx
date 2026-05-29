@@ -38,19 +38,28 @@ const PromoBanner = ({ variant }: PromoBannerProps) => {
 
           <div className="flex-1 text-center small:text-left">
             <h2 className="text-ceedmart-gold text-xl small:text-2xl font-bold mb-1">
-              Wholesale Fresh Produce & Bulk Groceries
+              Power up your home or business
             </h2>
-            <p className="text-white/80 text-sm small:text-base max-w-md">
-              Order organic produce, grains & natural ingredients in bulk — wholesale prices, direct supply.
+            <p className="text-white/85 text-sm small:text-base max-w-md">
+              Solar systems for reliable power and CCTV cameras to keep your
+              space secure — quality kit at great prices.
             </p>
           </div>
 
-          <LocalizedClientLink
-            href="/store/wholefoods"
-            className="flex-shrink-0 px-6 py-3 rounded-full bg-white text-wholefoods-dark font-semibold text-sm hover:bg-wholefoods-light transition-colors"
-          >
-            Order Wholesale
-          </LocalizedClientLink>
+          <div className="flex-shrink-0 flex flex-col gap-2 items-center small:items-end">
+            <LocalizedClientLink
+              href="/collections/solar-power-packages"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white text-wholefoods-dark font-semibold text-sm hover:bg-wholefoods-light transition-colors whitespace-nowrap"
+            >
+              Shop Solar Power
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              href="/categories/cctv-cameras"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-white/15 text-white border border-white/40 font-semibold text-sm hover:bg-white/25 transition-colors whitespace-nowrap"
+            >
+              Shop CCTV Cameras
+            </LocalizedClientLink>
+          </div>
         </div>
       </div>
     )

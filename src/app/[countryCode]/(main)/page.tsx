@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import Image from "next/image"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export const metadata: Metadata = {
   title: "CeedMart — Launching Friday, May 29, 2026",
@@ -154,6 +155,25 @@ export default function Home() {
           <WhatsAppIcon />
           Get launch updates on WhatsApp
         </a>
+
+        <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6 text-white/70 text-xs">
+          {[
+            { href: "/legal/privacy", label: "Privacy" },
+            { href: "/legal/terms", label: "Terms" },
+            { href: "/legal/refund", label: "Refunds" },
+            { href: "/legal/shipping", label: "Shipping" },
+            { href: "/legal/cookies", label: "Cookies" },
+          ].map((l) => (
+            <li key={l.href}>
+              <LocalizedClientLink
+                href={l.href}
+                className="hover:text-white hover:underline"
+              >
+                {l.label}
+              </LocalizedClientLink>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
