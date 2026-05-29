@@ -1,5 +1,4 @@
 import { Metadata } from "next"
-import { headers } from "next/headers"
 import { Suspense } from "react"
 
 import { listCartOptions, retrieveCart } from "@lib/data/cart"
@@ -13,29 +12,11 @@ import Nav from "@modules/layout/templates/nav"
 import BannerSlot from "@modules/banners/components/banner-slot"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 
-// Temporary pre-launch behaviour: hide all chrome (nav, footer, banners,
-// mobile bottom nav) on the country-root path so visitors can't navigate
-// past the coming-soon landing. Remove this guard after launch by reverting
-// the conditional back to always rendering the chrome.
-const isLandingPath = (pathname: string | null) => {
-  if (!pathname) return false
-  return /^\/[a-z]{2}\/?$/.test(pathname)
-}
-
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
 }
 
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const pathname = (await headers()).get("x-pathname")
-  const hideChrome = isLandingPath(pathname)
-
-  // Landing path: just render the page itself. Skip cart/customer fetches
-  // entirely so the network round-trip doesn't slow down the splash.
-  if (hideChrome) {
-    return <>{props.children}</>
-  }
-
   const customer = await retrieveCustomer()
   const cart = await retrieveCart()
   let shippingOptions: StoreCartShippingOption[] = []
