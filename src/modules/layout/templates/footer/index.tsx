@@ -200,6 +200,9 @@ export default async function Footer() {
               <li>
                 <FooterLink href="/solar">Get a solar estimate</FooterLink>
               </li>
+              <li>
+                <FooterLink href="/careers">Careers</FooterLink>
+              </li>
             </Column>
           </div>
 

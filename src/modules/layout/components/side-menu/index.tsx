@@ -17,6 +17,7 @@ const SideMenuItems = {
   "Solar Power & Security": "/store/tech",
   "Patio Furniture": "/store/patio-furniture",
   "Get Solar Estimates": "/solar",
+  Careers: "/careers",
   Account: "/account",
   Cart: "/cart",
 }

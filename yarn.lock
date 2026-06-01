@@ -4282,6 +4282,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tailwindcss/typography@npm:^0.5.19":
+  version: 0.5.19
+  resolution: "@tailwindcss/typography@npm:0.5.19"
+  dependencies:
+    postcss-selector-parser: "npm:6.0.10"
+  peerDependencies:
+    tailwindcss: "*"
+  checksum: 10/f7fbbad3c863f07e7c2c2ededc1cb4efc540ad5a3b8d2d99185afad31074baba90d54cddc7e2c25b39e3f2a77cccd6fd8623477577ede53dadc0fff80802a2ca
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-table@npm:8.20.5":
   version: 8.20.5
   resolution: "@tanstack/react-table@npm:8.20.5"
@@ -7411,6 +7422,7 @@ __metadata:
     "@radix-ui/react-accordion": "npm:^1.2.1"
     "@stripe/react-stripe-js": "npm:^5.3.0"
     "@stripe/stripe-js": "npm:^8.2.0"
+    "@tailwindcss/typography": "npm:^0.5.19"
     "@types/lodash": "npm:^4.14.195"
     "@types/node": "npm:17.0.21"
     "@types/pg": "npm:^8.11.0"
@@ -8157,6 +8169,16 @@ __metadata:
   peerDependencies:
     postcss: ^8.2.14
   checksum: 10/d7f6ba6bfd03d42f84689a0630d4e393c421bb53723f16fe179a840f03ed17763b0fe494458577d2a015e857e0ec27c7e194909ffe209ee5f0676aec39737317
+  languageName: node
+  linkType: hard
+
+"postcss-selector-parser@npm:6.0.10":
+  version: 6.0.10
+  resolution: "postcss-selector-parser@npm:6.0.10"
+  dependencies:
+    cssesc: "npm:^3.0.0"
+    util-deprecate: "npm:^1.0.2"
+  checksum: 10/f8ad9beb764a64b51a8027650e745a44ed7198f0b968b823db9563a54990924bcf9eb6fb59fbbb7eb05a89b2b6a24b81b2b7d60ecadda15b04a0024c7663f436
   languageName: node
   linkType: hard
 
