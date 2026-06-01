@@ -115,7 +115,7 @@ export default async function RequisitionDetailPage({ params }: Props) {
         <div className="content-container max-w-3xl mx-auto">
           {requisition.description ? (
             <div
-              className="prose prose-sm small:prose-base medium:prose-lg max-w-none text-grey-70 prose-headings:text-ceedmart-navy prose-headings:font-bold prose-a:text-ceedmart-blue prose-strong:text-ceedmart-navy prose-li:my-1"
+              className="prose prose-sm max-w-none text-grey-70 leading-snug prose-headings:text-ceedmart-navy prose-headings:font-bold prose-headings:mt-5 prose-headings:mb-2 prose-h2:text-lg prose-h3:text-base prose-p:my-2 prose-a:text-ceedmart-blue prose-strong:text-ceedmart-navy prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-li:leading-snug prose-li:marker:text-ceedmart-navy/60"
               // Authored by admins through the requisitions editor — trusted source.
               dangerouslySetInnerHTML={{ __html: requisition.description }}
             />
