@@ -16,7 +16,6 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
-import PromoBanner from "@modules/home/components/promo-banner"
 
 export const metadata: Metadata = {
   title: "Whole Foods | CeedMart",
@@ -148,10 +147,6 @@ export default async function WholeFoodsPage(props: Params) {
 
       <div className="content-container py-6 flex flex-col gap-4">
         <CategoriesCarousel categories={wholefoodsCategories} />
-
-        <div className="mt-4">
-          <PromoBanner variant="wholefoods" />
-        </div>
 
         <section className="mt-8">
           <h2 className="text-lg font-bold text-wholefoods-dark mb-6 flex items-center gap-2">
