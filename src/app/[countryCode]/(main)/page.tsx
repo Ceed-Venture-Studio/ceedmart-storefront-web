@@ -9,9 +9,9 @@ import StoreCards from "@modules/home/components/store-cards"
 
 export const metadata: Metadata = {
   title:
-    "CeedMart — Whole Foods, Electronics, Solar & Patio Furniture at Great Prices",
+    "CeedMart — Whole Foods, Solar Power, CCTV & Computer Accessories at Great Prices",
   description:
-    "Shop quality whole foods, electronics, solar systems, patio furniture and more at great prices. Free delivery in Lagos & Port Harcourt.",
+    "Shop quality whole foods, solar energy systems, CCTV & access control and computer accessories at great prices. Free delivery in Lagos & Port Harcourt.",
 }
 
 type Props = {
