@@ -17,7 +17,6 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
-import PromoBanner from "@modules/home/components/promo-banner"
 
 export const metadata: Metadata = {
   title: "Solar Energy & Power | CeedMart",
@@ -149,10 +148,6 @@ export default async function SolarEnergyPowerStorePage(props: Params) {
 
       <div className="content-container py-6 flex flex-col gap-4">
         <CategoriesCarousel categories={solarCategories} />
-
-        <div className="mt-4">
-          <PromoBanner variant="tech" />
-        </div>
 
         <section className="mt-8">
           <h2 className="text-lg font-bold text-grey-90 mb-6">
