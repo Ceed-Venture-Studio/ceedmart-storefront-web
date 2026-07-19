@@ -97,7 +97,7 @@ const cards: StoreCard[] = [
   },
   {
     href: "/store/computer-accessories",
-    eyebrow: "Work & Play",
+    eyebrow: "Home & Office",
     title: "Computer & Accessories",
     desc: "Laptops, monitors, peripherals and productivity gear for home and office",
     cta: "Explore Computer & Accessories",

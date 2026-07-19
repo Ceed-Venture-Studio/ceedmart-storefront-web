@@ -136,7 +136,9 @@ export default function SearchHero({
                 <button
                   key={pill.id}
                   onClick={() => handleExtraClick(pill.href)}
-                  className="shrink-0 px-5 py-2.5 rounded-full border border-ceedmart-gold/60 bg-ceedmart-gold/15 text-base font-medium text-ceedmart-navy hover:border-ceedmart-gold hover:bg-ceedmart-gold/25 hover:shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                  // Extras use the same neutral pill treatment as
+                  // categories — no brand-color singling out.
+                  className="shrink-0 px-5 py-2.5 rounded-full border border-grey-20 bg-white text-base font-medium text-grey-80 hover:border-ceedmart-navy hover:text-ceedmart-navy hover:bg-ceedmart-navy/5 hover:shadow-sm transition-all cursor-pointer whitespace-nowrap"
                 >
                   {pill.name}
                 </button>

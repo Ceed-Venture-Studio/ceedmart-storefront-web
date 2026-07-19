@@ -2,13 +2,11 @@ import { Metadata } from "next"
 import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
-import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
   SOLAR_COLLECTION_IDS,
-  SOLAR_COLLECTION_HANDLES,
   SOLAR_CATEGORY_IDS,
   SOLAR_CATEGORY_HANDLES,
 } from "@lib/data/store-config"
@@ -17,7 +15,6 @@ import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
-import CollectionsRichGrid from "@modules/home/components/collections-rich-grid"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 import PromoBanner from "@modules/home/components/promo-banner"
@@ -79,21 +76,16 @@ export default async function SolarEnergyPowerStorePage(props: Params) {
     )
   }
 
-  const [categories, collectionsData, productsData, region, cart] =
-    await Promise.all([
-      listCategories(),
-      listCollections({
-        fields:
-          "id,title,handle,products.id,products.title,products.thumbnail,products.images.url",
-      }),
-      listProducts({
-        pageParam: 1,
-        countryCode,
-        queryParams: { limit: 12, ...solarProductFilter },
-      }),
-      getRegion(countryCode),
-      retrieveCart().catch(() => null),
-    ])
+  const [categories, productsData, region, cart] = await Promise.all([
+    listCategories(),
+    listProducts({
+      pageParam: 1,
+      countryCode,
+      queryParams: { limit: 12, ...solarProductFilter },
+    }),
+    getRegion(countryCode),
+    retrieveCart().catch(() => null),
+  ])
 
   const solarCategories = (categories || [])
     .filter(
@@ -107,12 +99,6 @@ export default async function SolarEnergyPowerStorePage(props: Params) {
       name: c.name,
       handle: c.handle,
     }))
-
-  const solarCollections = (collectionsData?.collections || []).filter(
-    (c) =>
-      SOLAR_COLLECTION_IDS.includes(c.id) ||
-      SOLAR_COLLECTION_HANDLES.includes(c.handle ?? "")
-  )
 
   const { products } = productsData.response
   const hasMore = productsData.nextPage !== null
@@ -162,8 +148,6 @@ export default async function SolarEnergyPowerStorePage(props: Params) {
       </div>
 
       <div className="content-container py-6 flex flex-col gap-4">
-        <CollectionsRichGrid collections={solarCollections} limit={6} />
-
         <CategoriesCarousel categories={solarCategories} />
 
         <div className="mt-4">

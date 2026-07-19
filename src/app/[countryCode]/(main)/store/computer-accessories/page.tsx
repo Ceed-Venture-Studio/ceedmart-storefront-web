@@ -2,13 +2,11 @@ import { Metadata } from "next"
 import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
-import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
 import {
   COMPUTER_COLLECTION_IDS,
-  COMPUTER_COLLECTION_HANDLES,
   COMPUTER_CATEGORY_IDS,
   COMPUTER_CATEGORY_HANDLES,
 } from "@lib/data/store-config"
@@ -17,7 +15,6 @@ import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
-import CollectionsRichGrid from "@modules/home/components/collections-rich-grid"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
 
@@ -78,21 +75,16 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
     )
   }
 
-  const [categories, collectionsData, productsData, region, cart] =
-    await Promise.all([
-      listCategories(),
-      listCollections({
-        fields:
-          "id,title,handle,products.id,products.title,products.thumbnail,products.images.url",
-      }),
-      listProducts({
-        pageParam: 1,
-        countryCode,
-        queryParams: { limit: 12, ...computerProductFilter },
-      }),
-      getRegion(countryCode),
-      retrieveCart().catch(() => null),
-    ])
+  const [categories, productsData, region, cart] = await Promise.all([
+    listCategories(),
+    listProducts({
+      pageParam: 1,
+      countryCode,
+      queryParams: { limit: 12, ...computerProductFilter },
+    }),
+    getRegion(countryCode),
+    retrieveCart().catch(() => null),
+  ])
 
   const computerCategories = (categories || [])
     .filter(
@@ -106,12 +98,6 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
       name: c.name,
       handle: c.handle,
     }))
-
-  const computerCollections = (collectionsData?.collections || []).filter(
-    (c) =>
-      COMPUTER_COLLECTION_IDS.includes(c.id) ||
-      COMPUTER_COLLECTION_HANDLES.includes(c.handle ?? "")
-  )
 
   const { products } = productsData.response
   const hasMore = productsData.nextPage !== null
@@ -137,7 +123,7 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
               <path d="M3 24h26l-1 3H4l-1-3z" fill="white" fillOpacity="0.85" />
             </svg>
             <span className="text-slate-100 text-sm font-semibold uppercase tracking-widest">
-              Work & Play
+              Home & Office
             </span>
           </div>
           <h1 className="text-white text-3xl small:text-5xl font-bold drop-shadow-sm">
@@ -154,8 +140,6 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
       </div>
 
       <div className="content-container py-6 flex flex-col gap-4 bg-white">
-        <CollectionsRichGrid collections={computerCollections} limit={6} />
-
         <CategoriesCarousel categories={computerCategories} />
 
         <section className="mt-8">
