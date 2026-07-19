@@ -67,7 +67,7 @@ export default function SearchHero({
                 : "text-grey-70 text-sm small:text-base font-medium"
             }
           >
-            Whole Foods · Electronics · Solar · Patio Furniture & more
+            Whole Foods · Solar Power · CCTV · Computer & Accessories
           </h1>
         </div>
 

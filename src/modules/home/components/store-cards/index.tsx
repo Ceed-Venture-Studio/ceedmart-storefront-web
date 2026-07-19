@@ -10,6 +10,9 @@ type StoreCard = {
   cta?: string
   gradient: string
   titleColor: string
+  // Description body color. Defaults to "text-white/85" if omitted —
+  // matches the tone used on dark gradients.
+  descColor?: string
   iconColor: string
   chipBg: string
   chipText: string
@@ -50,36 +53,63 @@ const cards: StoreCard[] = [
     ),
   },
   {
-    href: "/store/tech",
-    eyebrow: "Power & Security",
-    title: "Solar Power & Security",
-    desc: "Solar systems, inverters, batteries & CCTV — power your space and keep it safe",
-    cta: "Explore Solar Power & Security",
+    href: "/store/solar-energy-power",
+    eyebrow: "Reliable Power",
+    title: "Solar Energy & Power",
+    desc: "Solar panels, inverters, batteries and power stations for homes and businesses",
+    cta: "Explore Solar Energy & Power",
     gradient: "from-tech-dark via-tech to-tech-light",
     titleColor: "text-white",
     iconColor: "text-white",
     chipBg: "bg-white/20",
     chipText: "text-tech-light",
     icon: (
+      // sun + panel
       <svg viewBox="0 0 64 64" fill="currentColor" className="w-16 h-16 small:w-20 small:h-20">
-        <path d="M8 12a4 4 0 0 1 4-4h40a4 4 0 0 1 4 4v28a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V12m4 0v28h40V12H12m-2 36h44v4H10v-4m16-22h12v2H26v-2m-4 6h20v2H22v-2" />
+        <circle cx="32" cy="16" r="6" />
+        <path d="M32 4v4m0 20v4M18 16h4m20 0h4M22 6l3 3m14 14l3 3M22 26l3-3m14-14l3-3" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" />
+        <path d="M14 34h36l4 22H10l4-22zm4 4l-2 14h32l-2-14H18zm8 0v14m6-14v14m6-14v14" />
       </svg>
     ),
   },
   {
-    href: "/store/patio-furniture",
-    eyebrow: "Indoor & Outdoor",
-    title: "Patio Furniture",
-    desc: "Rattan dining & sitting sets, swings and more",
-    cta: "Explore Patio Furniture",
-    gradient: "from-amber-800 via-amber-600 to-orange-400",
-    titleColor: "text-white",
-    iconColor: "text-amber-100",
-    chipBg: "bg-white/20",
-    chipText: "text-amber-100",
+    href: "/store/cctv-access-control",
+    eyebrow: "Watch & Protect",
+    title: "CCTV & Access Control",
+    desc: "Cameras, DVRs, biometric readers and access systems to keep your space safe",
+    cta: "Explore CCTV & Access Control",
+    // Ceedmart yellow (gold) primary with a warmer inner tone for depth.
+    gradient: "from-yellow-500 via-ceedmart-gold to-amber-300",
+    // Yellow is high-contrast against white — swap to the brand navy for
+    // legibility instead of the white treatment other cards use.
+    titleColor: "text-ceedmart-navy",
+    descColor: "text-ceedmart-navy/80",
+    iconColor: "text-ceedmart-navy",
+    chipBg: "bg-ceedmart-navy/15",
+    chipText: "text-ceedmart-navy",
     icon: (
+      // dome camera glyph
       <svg viewBox="0 0 64 64" fill="currentColor" className="w-16 h-16 small:w-20 small:h-20">
-        <path d="M14 18h36v6H14v-6zm-2 10h40v18h-6v-12H18v12h-6V28zm6 18h2v6h-2v-6zm26 0h2v6h-2v-6z" />
+        <path d="M12 20a20 20 0 0 1 40 0v6H12v-6zm4 0h32a16 16 0 0 0-32 0zm-2 10h36v6H14v-6zm14 8h8v4h-8v-4zm-2 4h12l-2 16H28l-2-16z" />
+        <circle cx="32" cy="18" r="4" fill="#0037BF" />
+      </svg>
+    ),
+  },
+  {
+    href: "/store/computer-accessories",
+    eyebrow: "Work & Play",
+    title: "Computer & Accessories",
+    desc: "Laptops, monitors, peripherals and productivity gear for home and office",
+    cta: "Explore Computer & Accessories",
+    gradient: "from-slate-800 via-slate-600 to-slate-400",
+    titleColor: "text-white",
+    iconColor: "text-slate-100",
+    chipBg: "bg-white/20",
+    chipText: "text-slate-100",
+    icon: (
+      // laptop / monitor glyph
+      <svg viewBox="0 0 64 64" fill="currentColor" className="w-16 h-16 small:w-20 small:h-20">
+        <path d="M10 14a4 4 0 0 1 4-4h36a4 4 0 0 1 4 4v26H10V14zm4 0v22h36V14H14zm-6 30h48l-2 6H10l-2-6zm18 0h12v2H26v-2z" />
       </svg>
     ),
   },
@@ -93,12 +123,16 @@ export default function StoreCards({
   const shown = cards.filter((c) => !excludeHrefs.includes(c.href))
   if (shown.length === 0) return null
 
+  // With four cards, a balanced 2×2 grid keeps the content-rich cards
+  // readable; three stays 3-across; two side-by-side; one full-width.
   const gridCols =
     shown.length === 1
       ? "small:grid-cols-1"
       : shown.length === 2
         ? "small:grid-cols-2"
-        : "small:grid-cols-3"
+        : shown.length === 3
+          ? "small:grid-cols-3"
+          : "small:grid-cols-2"
 
   return (
     <div className={`grid grid-cols-1 ${gridCols} gap-4 w-full max-w-6xl`}>
@@ -124,9 +158,15 @@ export default function StoreCards({
             >
               {c.title}
             </h3>
-            <p className="text-white/85 text-sm mt-2 max-w-[220px]">{c.desc}</p>
+            <p
+              className={`text-sm mt-2 max-w-[220px] ${c.descColor ?? "text-white/85"}`}
+            >
+              {c.desc}
+            </p>
           </div>
-          <div className="flex items-center gap-2 text-white font-semibold text-sm mt-4 group-hover:gap-3 transition-all">
+          <div
+            className={`flex items-center gap-2 font-semibold text-sm mt-4 group-hover:gap-3 transition-all ${c.titleColor}`}
+          >
             {c.cta ?? "Order in bulk"}
             <ArrowIcon />
           </div>
