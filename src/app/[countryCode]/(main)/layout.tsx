@@ -10,7 +10,6 @@ import Footer from "@modules/layout/templates/footer"
 import MobileNavWrapper from "@modules/layout/components/mobile-bottom-nav/mobile-nav-wrapper"
 import Nav from "@modules/layout/templates/nav"
 import BannerSlot from "@modules/banners/components/banner-slot"
-import PromoBannerCarousel from "@modules/banners/components/promo-banner-carousel"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 
 export const metadata: Metadata = {
@@ -43,7 +42,6 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
           shippingOptions={shippingOptions}
         />
       )}
-      <PromoBannerCarousel />
       <div className="pb-16 small:pb-0">{props.children}</div>
       <Footer />
       <Suspense>
