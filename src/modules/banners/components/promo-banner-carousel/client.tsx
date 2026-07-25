@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
 import Image from "next/image"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import type { Banner } from "../../../../types/banner"
@@ -48,12 +47,8 @@ const CTA = ({
 }
 
 export default function PromoBannerCarouselClient({ banners, intervalMs = ROTATE_MS }: Props) {
-  const pathname = usePathname()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-
-  // Hide on the home page — locale segment only, e.g. /us or /ng.
-  const isHome = /^\/[a-z]{2}\/?$/i.test(pathname || "")
 
   useEffect(() => {
     if (paused || banners.length <= 1) return
@@ -63,20 +58,19 @@ export default function PromoBannerCarouselClient({ banners, intervalMs = ROTATE
     return () => clearInterval(t)
   }, [paused, banners.length, intervalMs])
 
-  if (isHome || banners.length === 0) return null
+  if (banners.length === 0) return null
 
   const current = banners[index]
   const bg = current.primary_color || "#05007F"
   const fg = current.secondary_color || "#FFFFFF"
 
   return (
-    <div className="content-container pt-4">
-      <div
-        className="relative w-full rounded-2xl overflow-hidden"
-        style={{ backgroundColor: bg, color: fg }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
+    <div
+      className="relative w-full rounded-2xl overflow-hidden"
+      style={{ backgroundColor: bg, color: fg }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
         <div className="relative flex flex-col small:flex-row items-stretch">
           {/* Image on the right (or top on mobile) — decorative */}
           <div className="relative w-full small:w-2/5 aspect-[4/1] small:aspect-auto small:min-h-[180px]">
@@ -125,24 +119,23 @@ export default function PromoBannerCarouselClient({ banners, intervalMs = ROTATE
           </div>
         </div>
 
-        {banners.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {banners.map((b, i) => (
-              <button
-                key={b.id}
-                onClick={() => setIndex(i)}
-                aria-label={`Show promo ${i + 1}`}
-                className="h-1.5 rounded-full transition-all"
-                style={{
-                  width: i === index ? 24 : 8,
-                  backgroundColor: fg,
-                  opacity: i === index ? 1 : 0.5,
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {banners.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {banners.map((b, i) => (
+            <button
+              key={b.id}
+              onClick={() => setIndex(i)}
+              aria-label={`Show promo ${i + 1}`}
+              className="h-1.5 rounded-full transition-all"
+              style={{
+                width: i === index ? 24 : 8,
+                backgroundColor: fg,
+                opacity: i === index ? 1 : 0.5,
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

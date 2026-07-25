@@ -17,6 +17,7 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
+import PromoBannerCarousel from "@modules/banners/components/promo-banner-carousel"
 
 export const metadata: Metadata = {
   title: "Computer & Accessories | CeedMart",
@@ -141,6 +142,10 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
 
       <div className="content-container py-6 flex flex-col gap-4 bg-white">
         <CategoriesCarousel categories={computerCategories} />
+
+        <div className="mt-4">
+          <PromoBannerCarousel />
+        </div>
 
         <section className="mt-8">
           <h2 className="text-lg font-bold text-grey-90 mb-6">

@@ -17,6 +17,7 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
+import PromoBannerCarousel from "@modules/banners/components/promo-banner-carousel"
 
 export const metadata: Metadata = {
   title: "Patio Furniture | CeedMart",
@@ -174,6 +175,10 @@ export default async function PatioFurniturePage(props: Params) {
         {patioCategories.length > 0 && (
           <CategoriesCarousel categories={patioCategories} />
         )}
+
+        <div className="mt-4">
+          <PromoBannerCarousel />
+        </div>
 
         <section className="mt-8">
           <h2 className="text-lg font-bold text-amber-900 mb-6 flex items-center gap-2">
