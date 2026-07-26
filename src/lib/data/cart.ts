@@ -5,6 +5,7 @@ import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
+import { cookies as nextCookies } from "next/headers"
 import {
   getAuthHeaders,
   getCacheOptions,
@@ -15,6 +16,37 @@ import {
 } from "./cookies"
 import { getRegion } from "./regions"
 import { getLocale } from "@lib/data/locale-actions"
+
+// M3 — Partner referral attribution.
+//
+// Middleware writes the ?ref=<code> query param to a "_ceedmart_ref"
+// cookie for 30 days. Whenever we resolve or create a cart, we stamp
+// that code onto the cart's metadata.ceedmart.partner_code so it survives
+// checkout and lands on the order. Attribution is frozen at first stamp
+// — a customer arriving via a fresh ref link doesn't overwrite an
+// already-attributed cart.
+async function attachPartnerCodeIfPresent(
+  cart: HttpTypes.StoreCart,
+  headers: Record<string, string>
+): Promise<HttpTypes.StoreCart> {
+  const store = await nextCookies()
+  const code = store.get("_ceedmart_ref")?.value?.trim().slice(0, 32) || null
+  if (!code) return cart
+
+  const meta = (cart.metadata ?? {}) as Record<string, any>
+  const ceedmart = (meta.ceedmart ?? {}) as Record<string, any>
+  if (typeof ceedmart.partner_code === "string" && ceedmart.partner_code.trim()) {
+    // Already attributed — don't overwrite.
+    return cart
+  }
+
+  const nextMetadata = { ...meta, ceedmart: { ...ceedmart, partner_code: code } }
+  const updated = await sdk.store.cart
+    .update(cart.id, { metadata: nextMetadata }, {}, headers)
+    .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
+    .catch(() => cart)
+  return updated
+}
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -85,6 +117,12 @@ export async function getOrSetCart(countryCode: string) {
     const cartCacheTag = await getCacheTag("carts")
     revalidateTag(cartCacheTag)
   }
+
+  // Stamp partner code from the referral cookie if the cart doesn't
+  // already carry one. Runs on every getOrSetCart so a customer who
+  // clicks a ref link after starting a cart still gets attributed —
+  // provided the cart isn't already attributed to someone else.
+  cart = await attachPartnerCodeIfPresent(cart, headers)
 
   return cart
 }
