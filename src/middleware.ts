@@ -147,9 +147,26 @@ export async function middleware(request: NextRequest) {
   const urlHasCountryCode =
     countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
 
+  // Referral capture — any ?ref=<code> in the URL sets a 30-day cookie
+  // that server actions later stamp onto the cart's
+  // metadata.ceedmart.partner_code. Sanity-limited to 32 chars so a bad
+  // link can't blow the cookie.
+  const refCode = request.nextUrl.searchParams.get("ref")?.trim().slice(0, 32) || null
+  const setRefCookie = (r: NextResponse) => {
+    if (refCode) {
+      r.cookies.set("_ceedmart_ref", refCode, {
+        maxAge: 60 * 60 * 24 * 30,
+        path: "/",
+        sameSite: "lax",
+      })
+    }
+  }
+
   // if one of the country codes is in the url and the cache id is set, return next
   if (urlHasCountryCode && cacheIdCookie) {
-    return NextResponse.next()
+    const next = NextResponse.next()
+    setRefCookie(next)
+    return next
   }
 
   // if one of the country codes is in the url and the cache id is not set, set the cache id and redirect
@@ -157,7 +174,7 @@ export async function middleware(request: NextRequest) {
     response.cookies.set("_medusa_cache_id", cacheId, {
       maxAge: 60 * 60 * 24,
     })
-
+    setRefCookie(response)
     return response
   }
 
@@ -182,6 +199,7 @@ export async function middleware(request: NextRequest) {
     )
   }
 
+  setRefCookie(response)
   return response
 }
 
