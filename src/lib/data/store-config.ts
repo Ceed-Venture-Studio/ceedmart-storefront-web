@@ -80,6 +80,28 @@ export const GROCERIES_COLLECTION_HANDLE = "groceries"
 export const POWER_SOLUTIONS_CATEGORY_ID = "pcat_yhkQTSA3IfaVwGVW"
 export const POWER_SOLUTIONS_COLLECTION_HANDLE = "power-solutions"
 
+// ─── Home page featured rail ────────────────────────────────────────────
+//
+// Which product tag drives the featured rail on the home page. Set by tag
+// VALUE (the text you type in admin), not id — so it stays readable and
+// survives a tag being deleted and recreated.
+//
+// Changing it needs no rebuild: it is a plain server-side env var, so a
+// Cloud Run env update swaps the rail in seconds.
+//
+//   gcloud run services update ceedmart-storefront --region europe-west1 \
+//     --update-env-vars FEATURED_PRODUCT_TAG="Featured"
+//
+// Merchandising then happens entirely in admin — tag a product with that
+// value and it appears on the home page within the 60s revalidate window.
+//
+// If the tag doesn't exist, or no live product carries it, the rail falls
+// back to newest-first so the home page is never left with an empty section.
+export const FEATURED_PRODUCT_TAG = process.env.FEATURED_PRODUCT_TAG || "Featured"
+
+/** How many products the home page rail shows. */
+export const FEATURED_PRODUCT_LIMIT = 8
+
 // ─── Navigation ─────────────────────────────────────────────────────────
 
 export type StoreSection = {

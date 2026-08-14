@@ -5,11 +5,8 @@ import {
   SUPPORT_WHATSAPP_URL,
 } from "@lib/data/delivery-locations"
 
-type Props = {
-  /** Real catalogue size — currently unused in the hero copy but kept so the
-   *  page can surface it without another round trip. */
-  productCount?: number
-}
+// The hero now leads with service promises rather than catalogue stats, so
+// it takes no data.
 
 const WhatsAppGlyph = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -61,7 +58,7 @@ const BENEFITS = [
  * The promise here is transparency: the price drops as the quantity rises,
  * and you can see that before you sign in.
  */
-export default function BulkHero({ productCount }: Props) {
+export default function BulkHero() {
   return (
     <section className="relative w-full overflow-hidden bg-ceedmart-navy">
       {/* Depth: soft gold bloom + faint grid, no external assets */}

@@ -39,7 +39,11 @@ steps:
       - "--platform"
       - "managed"
       - "--allow-unauthenticated"
-      - "--set-env-vars"
+      # --update-env-vars, NOT --set-env-vars: the latter REPLACES the whole
+      # env block, so any var set out-of-band would be silently wiped on the
+      # next deploy. FEATURED_PRODUCT_TAG is meant to be changed with
+      # `gcloud run services update` without a rebuild, so it has to survive.
+      - "--update-env-vars"
       - "MEDUSA_BACKEND_URL=https://ceedmart-api-870514614467.europe-west1.run.app,REVALIDATE_SECRET=${_REVALIDATE_SECRET}"
       - "--min-instances"
       - "1"
