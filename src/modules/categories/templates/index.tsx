@@ -93,13 +93,9 @@ export default async function CategoryTemplate({
             </div>
           </div>
         )}
-        <Suspense
-          fallback={
-            <SkeletonProductGrid
-              numberOfProducts={category.products?.length ?? 8}
-            />
-          }
-        >
+        {/* Fixed placeholder count: `category.products` is no longer expanded
+            by listCategories (see lib/data/categories.ts). */}
+        <Suspense fallback={<SkeletonProductGrid numberOfProducts={8} />}>
           <PaginatedProducts
             sortBy={sort}
             page={pageNumber}

@@ -11,6 +11,7 @@ import MobileNavWrapper from "@modules/layout/components/mobile-bottom-nav/mobil
 import Nav from "@modules/layout/templates/nav"
 import BannerSlot from "@modules/banners/components/banner-slot"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
+import LocationPicker from "@modules/layout/components/location-picker"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
@@ -31,6 +32,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
     <>
       <BannerSlot slot="promo_strip" />
       <Nav />
+      <LocationPicker />
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
       )}

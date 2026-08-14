@@ -5,11 +5,7 @@ import { listCategories } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
-import {
-  COMPUTER_COLLECTION_IDS,
-  COMPUTER_CATEGORY_IDS,
-  COMPUTER_CATEGORY_HANDLES,
-} from "@lib/data/store-config"
+import { COMPUTER_CATEGORY_ID } from "@lib/data/store-config"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import RefinementList from "@modules/store/components/refinement-list"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
@@ -34,10 +30,6 @@ type Params = {
   params: Promise<{
     countryCode: string
   }>
-}
-
-const computerProductFilter = {
-  collection_id: COMPUTER_COLLECTION_IDS,
 }
 
 export default async function ComputerAccessoriesStorePage(props: Params) {
@@ -76,29 +68,38 @@ export default async function ComputerAccessoriesStorePage(props: Params) {
     )
   }
 
-  const [categories, productsData, region, cart] = await Promise.all([
-    listCategories(),
-    listProducts({
-      pageParam: 1,
-      countryCode,
-      queryParams: { limit: 12, ...computerProductFilter },
-    }),
+  const [childCategories, region, cart] = await Promise.all([
+    listCategories({ parent_category_id: COMPUTER_CATEGORY_ID }),
     getRegion(countryCode),
     retrieveCart().catch(() => null),
   ])
 
-  const computerCategories = (categories || [])
-    .filter(
-      (c) =>
-        !c.parent_category &&
-        (COMPUTER_CATEGORY_IDS.includes(c.id) ||
-          COMPUTER_CATEGORY_HANDLES.includes(c.handle ?? ""))
-    )
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      handle: c.handle,
-    }))
+  // Carousel: the direct children of Gadgets (Laptop, Monitor, PC Towers, …).
+  const computerCategories = (childCategories || []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    handle: c.handle,
+  }))
+
+  // Grid: parent + children + grandchildren. `category_id` is an exact match
+  // on the API rather than a subtree query, so every level has to be named or
+  // products filed only on a leaf drop out — e.g. the Thinkpad X1 Carbon,
+  // which sits on Laptop/Ultrabook and not on Gadgets itself.
+  const computerProductFilter = {
+    category_id: [
+      COMPUTER_CATEGORY_ID,
+      ...(childCategories || []).flatMap((c) => [
+        c.id,
+        ...(c.category_children ?? []).map((g) => g.id),
+      ]),
+    ],
+  }
+
+  const productsData = await listProducts({
+    pageParam: 1,
+    countryCode,
+    queryParams: { limit: 12, ...computerProductFilter },
+  })
 
   const { products } = productsData.response
   const hasMore = productsData.nextPage !== null

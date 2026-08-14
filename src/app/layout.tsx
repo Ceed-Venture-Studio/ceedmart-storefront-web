@@ -2,6 +2,7 @@ import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
 import localFont from "next/font/local"
 import "styles/globals.css"
+import { DeliveryLocationProvider } from "@lib/context/delivery-location-context"
 
 const gilroy = localFont({
   src: [
@@ -50,7 +51,11 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" data-mode="light" className={gilroy.variable}>
       <body className="font-sans">
-        <main className="relative">{props.children}</main>
+        {/* Sits at the root, not in (main), so the (checkout) route group can
+            read the chosen delivery city too. */}
+        <DeliveryLocationProvider>
+          <main className="relative">{props.children}</main>
+        </DeliveryLocationProvider>
       </body>
     </html>
   )

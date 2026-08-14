@@ -1,17 +1,20 @@
 import { Metadata } from "next"
 
-import { listCategories } from "@lib/data/categories"
-import { listBanners } from "@lib/data/banners"
-import { SOLAR_PACKAGES_COLLECTION_HANDLE } from "@lib/data/store-config"
+import { listProducts } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
+import { retrieveCart } from "@lib/data/cart"
+import { getStoreMenu } from "@lib/data/menu"
 import BannerSlot from "@modules/banners/components/banner-slot"
-import SearchHero from "@modules/home/components/search-hero"
-import StoreCards from "@modules/home/components/store-cards"
+import BulkHero from "@modules/home/components/bulk-hero"
+import SectionGrid from "@modules/home/components/section-grid"
+import BulkExplainer from "@modules/home/components/bulk-explainer"
+import SolarFeature from "@modules/home/components/solar-feature"
+import ProductCard from "@modules/products/components/product-card"
 
 export const metadata: Metadata = {
-  title:
-    "CeedMart — Whole Foods, Solar Power, CCTV & Computer Accessories at Great Prices",
+  title: "CeedMart — Wholesale & Bulk Supply in Nigeria",
   description:
-    "Shop quality whole foods, solar energy systems, CCTV & access control and computer accessories at great prices. Free delivery in Lagos & Port Harcourt.",
+    "Buy foods, groceries, solar, power, CCTV and computer accessories in bulk. Unit prices drop as your order grows. Free delivery in Lagos & Port Harcourt.",
 }
 
 type Props = {
@@ -19,93 +22,64 @@ type Props = {
 }
 
 export default async function Home(props: Props) {
-  await props.params
+  const { countryCode } = await props.params
 
-  // Pre-check whether a hero banner is configured for this slot so we know
-  // whether to render the overlay layout or fall back to a banner-less hero.
-  // listBanners is server-cached under tag "banners" so this is effectively
-  // free even though BannerSlot re-calls it.
-  const [categories, heroMobile, heroDesktop] = await Promise.all([
-    listCategories(),
-    listBanners("home_hero_mobile", 1),
-    listBanners("home_hero_desktop", 1),
+  const [sections, region, cart, featured] = await Promise.all([
+    getStoreMenu(),
+    getRegion(countryCode),
+    retrieveCart().catch(() => null),
+    listProducts({
+      pageParam: 1,
+      countryCode,
+      queryParams: { limit: 8 },
+    }).catch(() => null),
   ])
 
-  const topLevelCategories = (categories || [])
-    .filter((c) => !c.parent_category)
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      handle: c.handle,
-    }))
+  const featuredProducts = featured?.response.products ?? []
 
-  const hasHero = heroMobile.length > 0 || heroDesktop.length > 0
+  // Real catalogue size for the hero stat strip — never a hardcoded boast.
+  const productCount = featured?.response.count ?? 0
 
   return (
     <div className="w-full flex flex-col">
-      {hasHero ? (
-        <section className="relative w-full">
-          <BannerSlot
-            slot="home_hero_mobile"
-            priority
-            className="small:hidden"
-          />
-          <BannerSlot
-            slot="home_hero_desktop"
-            priority
-            className="hidden small:block"
-          />
+      <BulkHero productCount={productCount} />
 
-          {/* Contrast overlay — keeps the search/pills legible on any banner */}
-          <div
-            className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/30 to-black/55 pointer-events-none"
-            aria-hidden
-          />
+      <div className="content-container flex flex-col gap-14 small:gap-20 py-12 small:py-20">
+        {/* Merchandising slots retained so admin can still run campaigns
+            without a deploy. Renders nothing when no banner is configured. */}
+        <BannerSlot
+          slot="home_secondary"
+          limit={3}
+          className="grid grid-cols-1 small:grid-cols-3 gap-4 w-full"
+          itemClassName="block rounded-2xl overflow-hidden"
+        />
 
-          {/* Floating search + pills */}
-          <div className="absolute inset-0 flex items-end small:items-center justify-center pb-6 small:pb-0">
-            <SearchHero
-              categories={topLevelCategories}
-              tone="light"
-              extras={[
-                {
-                  id: "solar-power-packages",
-                  name: "Solar Power Packages",
-                  href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
-                },
-              ]}
-            />
-          </div>
-        </section>
-      ) : (
-        <div className="w-full flex justify-center px-6 pt-10 small:pt-14">
-          <SearchHero
-            categories={topLevelCategories}
-            extras={[
-              {
-                id: "solar-power-packages",
-                name: "Solar Power Packages",
-                href: `/collections/${SOLAR_PACKAGES_COLLECTION_HANDLE}`,
-              },
-            ]}
-          />
-        </div>
-      )}
+        <SectionGrid sections={sections} />
 
-      <div className="w-full flex flex-col items-center pt-10 pb-12 small:pt-14 gap-10">
-        {/* 3-up secondary banners */}
-        <div className="w-full flex justify-center px-6">
-          <BannerSlot
-            slot="home_secondary"
-            limit={3}
-            className="grid grid-cols-1 small:grid-cols-3 gap-4 w-full max-w-6xl"
-            itemClassName="block rounded-rounded overflow-hidden"
-          />
-        </div>
+        <BulkExplainer />
 
-        <div className="w-full flex justify-center px-6">
-          <StoreCards />
-        </div>
+        {region && featuredProducts.length > 0 && (
+          <section className="w-full">
+            <div className="flex items-end justify-between mb-6 gap-4">
+              <h2 className="text-2xl small:text-3xl font-bold text-grey-90 tracking-tight">
+                New in stock
+              </h2>
+            </div>
+            <ul className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-4 gap-y-8">
+              {featuredProducts.map((product) => (
+                <li key={product.id}>
+                  <ProductCard
+                    product={product}
+                    region={region}
+                    cartLineItems={cart?.items ?? []}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <SolarFeature />
       </div>
     </div>
   )

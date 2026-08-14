@@ -3,19 +3,21 @@
 import { Popover, PopoverPanel, Transition } from "@headlessui/react"
 import { ArrowRightMini, BarsThree, XMark } from "@medusajs/icons"
 import { Text, clx, useToggleState } from "@medusajs/ui"
-import { Fragment } from "react"
+import { Fragment, useState } from "react"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { HttpTypes } from "@medusajs/types"
 import { Locale } from "@lib/data/locales"
+import type { MenuSection } from "@lib/data/menu"
 
-const SideMenuItems = {
+// Links that sit outside the category tree. The shop sections themselves come
+// from `sections`, which is derived from the live catalogue — the old
+// hardcoded list here had drifted badly (it pointed at the retired
+// /store/tech route and never listed CCTV or Computer & Accessories at all).
+const StaticMenuItems = {
   Home: "/",
-  "Whole Foods": "/store/wholefoods",
-  "Solar Power & Security": "/store/tech",
-  "Patio Furniture": "/store/patio-furniture",
   "Get Solar Estimates": "/solar",
   Careers: "/careers",
   Account: "/account",
@@ -26,11 +28,18 @@ type SideMenuProps = {
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
+  sections: MenuSection[]
 }
 
-const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
+const SideMenu = ({
+  regions,
+  locales,
+  currentLocale,
+  sections,
+}: SideMenuProps) => {
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   return (
     <div className="h-full">
@@ -75,21 +84,103 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         <XMark />
                       </button>
                     </div>
-                    <ul className="flex flex-col gap-6 items-start justify-start">
-                      {Object.entries(SideMenuItems).map(([name, href]) => {
+                    <ul className="flex flex-col gap-4 items-start justify-start overflow-y-auto flex-1 py-4 w-full">
+                      <li className="w-full">
+                        <LocalizedClientLink
+                          href="/"
+                          className="text-lg leading-8 hover:text-ui-fg-disabled"
+                          onClick={close}
+                          data-testid="home-link"
+                        >
+                          Home
+                        </LocalizedClientLink>
+                      </li>
+
+                      {sections.map((section) => {
+                        const isOpen = expanded === section.href
+                        // A sparse section has too little filed on its child
+                        // categories to be worth expanding — link straight
+                        // through instead of opening an near-empty drawer.
+                        const canExpand = !section.isSparse
+
                         return (
-                          <li key={name}>
+                          <li key={section.href} className="w-full">
+                            <div className="flex items-center justify-between w-full gap-2">
+                              <LocalizedClientLink
+                                href={section.href}
+                                className="text-lg leading-8 hover:text-ui-fg-disabled"
+                                onClick={close}
+                              >
+                                {section.title}
+                              </LocalizedClientLink>
+                              {canExpand && (
+                                <button
+                                  type="button"
+                                  aria-expanded={isOpen}
+                                  aria-label={`${
+                                    isOpen ? "Collapse" : "Expand"
+                                  } ${section.title}`}
+                                  onClick={() =>
+                                    setExpanded(isOpen ? null : section.href)
+                                  }
+                                  className="p-2 shrink-0"
+                                >
+                                  <ArrowRightMini
+                                    className={clx(
+                                      "transition-transform duration-150",
+                                      isOpen ? "rotate-90" : ""
+                                    )}
+                                  />
+                                </button>
+                              )}
+                            </div>
+
+                            {canExpand && isOpen && (
+                              <ul className="flex flex-col gap-2 pl-4 pb-2 pt-1">
+                                {section.groups.flatMap((group) =>
+                                  group.children.map((child) => (
+                                    <li key={child.id}>
+                                      <LocalizedClientLink
+                                        href={child.href}
+                                        className="text-sm leading-7 text-ui-fg-on-color/80 hover:text-ui-fg-on-color"
+                                        onClick={close}
+                                      >
+                                        {child.name}
+                                      </LocalizedClientLink>
+                                    </li>
+                                  ))
+                                )}
+                                {section.featured.map((collection) => (
+                                  <li key={collection.id}>
+                                    <LocalizedClientLink
+                                      href={collection.href}
+                                      className="text-sm leading-7 text-ui-fg-on-color/60 hover:text-ui-fg-on-color"
+                                      onClick={close}
+                                    >
+                                      {collection.name}
+                                    </LocalizedClientLink>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        )
+                      })}
+
+                      {Object.entries(StaticMenuItems)
+                        .filter(([name]) => name !== "Home")
+                        .map(([name, href]) => (
+                          <li key={name} className="w-full">
                             <LocalizedClientLink
                               href={href}
-                              className="text-3xl leading-10 hover:text-ui-fg-disabled"
+                              className="text-lg leading-8 hover:text-ui-fg-disabled"
                               onClick={close}
                               data-testid={`${name.toLowerCase()}-link`}
                             >
                               {name}
                             </LocalizedClientLink>
                           </li>
-                        )
-                      })}
+                        ))}
                     </ul>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (

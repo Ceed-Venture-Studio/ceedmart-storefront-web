@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
 import NigeriaAddressSelect from "../nigeria-address-select"
+import { useDeliveryLocation } from "@lib/context/delivery-location-context"
 
 const ShippingAddress = ({
   customer,
@@ -33,6 +34,25 @@ const ShippingAddress = ({
   })
 
   const isNigeria = formData["shipping_address.country_code"] === "ng"
+
+  // Seed the state from the delivery city the shopper picked on entry, so
+  // they don't re-enter something they already told us. Only fills a blank
+  // field — a cart that already carries an address is never overwritten, and
+  // the shopper can still change the select freely afterwards.
+  const { location: deliveryLocation } = useDeliveryLocation()
+
+  useEffect(() => {
+    if (!deliveryLocation) return
+    setFormData((current) => {
+      if (current["shipping_address.province"]) return current
+      return {
+        ...current,
+        "shipping_address.country_code":
+          current["shipping_address.country_code"] || "ng",
+        "shipping_address.province": deliveryLocation.state,
+      }
+    })
+  }, [deliveryLocation])
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
