@@ -95,12 +95,14 @@ export const POWER_SOLUTIONS_COLLECTION_HANDLE = "power-solutions"
 // Merchandising then happens entirely in admin — tag a product with that
 // value and it appears on the home page within the 60s revalidate window.
 //
-// If the tag doesn't exist, or no live product carries it, the rail falls
-// back to newest-first so the home page is never left with an empty section.
+// If the tag doesn't exist, or no live product carries it, the Featured rail
+// simply does not render — the "New in stock" rail above it already
+// guarantees the page is never left empty.
 export const FEATURED_PRODUCT_TAG = process.env.FEATURED_PRODUCT_TAG || "Featured"
 
-/** How many products the home page rail shows. */
-export const FEATURED_PRODUCT_LIMIT = 8
+/** Products loaded into each home page rail. Rails scroll horizontally, so
+ *  this is how far a shopper can scroll before "view more" takes over. */
+export const HOME_RAIL_LIMIT = 12
 
 // ─── Navigation ─────────────────────────────────────────────────────────
 

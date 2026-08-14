@@ -29,6 +29,7 @@ type Params = {
     q?: string
     category_id?: string | string[]
     collection_id?: string | string[]
+    tag_id?: string | string[]
   }>
   params: Promise<{
     countryCode: string
@@ -44,11 +45,12 @@ export default async function StorePage(props: Params) {
   const { sortBy, page, q } = searchParams
   const { countryCode } = params
 
-  const isSearching = !!q
+  const isSearching = !!q || toArray(searchParams.tag_id).length > 0
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
   const categoryIds = toArray(searchParams.category_id)
   const collectionIds = toArray(searchParams.collection_id)
+  const tagIds = toArray(searchParams.tag_id)
 
   // When searching, show filtered results with pagination + filter sidebar
   if (isSearching) {
@@ -72,7 +74,7 @@ export default async function StorePage(props: Params) {
           <div className="w-full">
             <div className="mb-8 text-2xl-semi">
               <h1 data-testid="store-page-title">
-                Search results for &ldquo;{q}&rdquo;
+                {q ? <>Search results for &ldquo;{q}&rdquo;</> : "Filtered products"}
               </h1>
             </div>
             <Suspense fallback={<SkeletonProductGrid />}>
@@ -83,6 +85,7 @@ export default async function StorePage(props: Params) {
                 q={q}
                 categoryIds={categoryIds}
                 collectionIds={collectionIds}
+                tagIds={tagIds}
               />
             </Suspense>
           </div>
