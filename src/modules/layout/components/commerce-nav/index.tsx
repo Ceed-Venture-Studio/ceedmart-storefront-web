@@ -27,6 +27,14 @@ const DESTINATIONS = [
     blurb: "Custom PCs and laptops",
   },
   {
+    // Its own flag, not custom_build: D-06 ships assisted requests first, so
+    // /build can be live while the configurator is still off.
+    flag: "build_configurator" as const,
+    href: "/build/pc",
+    label: "PC Builder",
+    blurb: "Pick your own parts",
+  },
+  {
     flag: "auction" as const,
     href: "/auctions",
     label: "Auctions",
