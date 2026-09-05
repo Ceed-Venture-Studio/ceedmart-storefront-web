@@ -11,6 +11,8 @@ import { getProductPrice } from "@lib/util/get-product-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { buildWhatsAppOrderUrl } from "@lib/data/delivery-locations"
 import { useDeliveryLocation } from "@lib/context/delivery-location-context"
+import CommerceTypeBadge from "@modules/common/components/commerce-type-badge"
+import type { ListingPolicy } from "@lib/data/listing-policy"
 import Thumbnail from "../thumbnail"
 
 type Props = {
@@ -18,6 +20,11 @@ type Props = {
   region: HttpTypes.StoreRegion
   isFeatured?: boolean
   cartLineItems?: HttpTypes.StoreCartLineItem[]
+  /** Commerce type for this listing (BRD §5.1). Omitted for standard stock,
+   *  which renders no badge — pages that surface pre-order, custom-build or
+   *  auction listings fetch policies with listListingPolicies and pass the
+   *  matching one down. */
+  policy?: ListingPolicy | null
 }
 
 type LineEntry = { lineId: string; quantity: number }
@@ -54,6 +61,7 @@ export default function ProductCard({
   product,
   isFeatured,
   cartLineItems,
+  policy,
 }: Props) {
   const countryCode = useParams().countryCode as string
 
@@ -256,6 +264,11 @@ export default function ProductCard({
       </LocalizedClientLink>
 
       <div className="flex flex-col gap-2 small:gap-2.5 p-3 small:p-4 flex-1">
+        {/* Above the title, so the fulfilment type is read before the
+            product name — §5.1 requires the shopper know what kind of
+            purchase this is before they engage with it. */}
+        {policy && <CommerceTypeBadge policy={policy} className="self-start" />}
+
         <LocalizedClientLink
           href={`/products/${product.handle}`}
           className="block"

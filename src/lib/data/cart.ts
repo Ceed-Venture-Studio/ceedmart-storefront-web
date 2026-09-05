@@ -16,6 +16,7 @@ import {
 } from "./cookies"
 import { getRegion } from "./regions"
 import { getLocale } from "@lib/data/locale-actions"
+import { mergeCeedmartMetadata, readCartCeedmart } from "./ceedmart-metadata"
 
 // M3 — Partner referral attribution.
 //
@@ -33,14 +34,15 @@ async function attachPartnerCodeIfPresent(
   const code = store.get("_ceedmart_ref")?.value?.trim().slice(0, 32) || null
   if (!code) return cart
 
-  const meta = (cart.metadata ?? {}) as Record<string, any>
-  const ceedmart = (meta.ceedmart ?? {}) as Record<string, any>
-  if (typeof ceedmart.partner_code === "string" && ceedmart.partner_code.trim()) {
+  const existing = readCartCeedmart(cart).partner_code
+  if (typeof existing === "string" && existing.trim()) {
     // Already attributed — don't overwrite.
     return cart
   }
 
-  const nextMetadata = { ...meta, ceedmart: { ...ceedmart, partner_code: code } }
+  const nextMetadata = mergeCeedmartMetadata(cart.metadata, {
+    partner_code: code,
+  })
   const updated = await sdk.store.cart
     .update(cart.id, { metadata: nextMetadata }, {}, headers)
     .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
