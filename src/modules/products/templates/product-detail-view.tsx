@@ -27,6 +27,9 @@ type Props = {
   region: HttpTypes.StoreRegion
   disabled?: boolean
   sidebarBanner?: React.ReactNode
+  /** Pre-order disclosure block (BRD §6.3), server-rendered and injected
+   *  like sidebarBanner. Null for ordinary stock. */
+  preorderPanel?: React.ReactNode
 }
 
 const optionsAsKeymap = (
@@ -42,6 +45,7 @@ export default function ProductDetailView({
   product,
   disabled,
   sidebarBanner,
+  preorderPanel,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -400,6 +404,7 @@ export default function ProductDetailView({
             </div>
           </div>
         </div>
+        {preorderPanel}
         {sidebarBanner}
       </div>
 

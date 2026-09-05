@@ -3,6 +3,13 @@ import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
+import PreorderPanel from "@modules/products/components/preorder-panel"
+import { getPreorderOffer } from "@lib/data/preorder"
+import {
+  listListingPolicies,
+  policyForProduct,
+  targetsFromProducts,
+} from "@lib/data/listing-policy"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
@@ -120,12 +127,32 @@ export default async function ProductPage(props: Props) {
     notFound()
   }
 
+  // Pre-order disclosure (BRD §6.3). Resolved server-side so the delivery
+  // estimate and cost inclusions are in the initial HTML — a shopper must
+  // be able to see this is a US pre-order before they interact with the buy
+  // box, not after a client fetch settles.
+  //
+  // Feature-flagged off means getPreorderOffer 404s and this stays null, so
+  // the page renders exactly as it does today.
+  const policies = await listListingPolicies(
+    targetsFromProducts([pricedProduct as any])
+  )
+  const policy = policyForProduct(pricedProduct as any, policies)
+
+  const preorderOffer =
+    policy?.commerce_type === "preorder" && policy.reference_id
+      ? await getPreorderOffer(policy.reference_id)
+      : null
+
   return (
     <ProductTemplate
       product={pricedProduct}
       region={region}
       countryCode={params.countryCode}
       images={images}
+      preorderPanel={
+        preorderOffer ? <PreorderPanel offer={preorderOffer} /> : null
+      }
     />
   )
 }

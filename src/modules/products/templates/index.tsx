@@ -14,6 +14,7 @@ type ProductTemplateProps = {
   region: HttpTypes.StoreRegion
   countryCode: string
   images: HttpTypes.StoreProductImage[]
+  preorderPanel?: React.ReactNode
 }
 
 const ProductTemplate: React.FC<ProductTemplateProps> = ({
@@ -21,6 +22,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
   region,
   countryCode,
   images,
+  preorderPanel,
 }) => {
   if (!product || !product.id) {
     return notFound()
@@ -37,6 +39,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           <ProductDetailView
             product={product}
             region={region}
+            preorderPanel={preorderPanel}
             sidebarBanner={
               <BannerSlot
                 slot="product_sidebar"
