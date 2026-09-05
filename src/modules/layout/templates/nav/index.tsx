@@ -6,6 +6,7 @@ import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
 import { getStoreMenu } from "@lib/data/menu"
 import MegaMenu from "@modules/layout/components/mega-menu"
+import CommerceNav from "@modules/layout/components/commerce-nav"
 import { ShoppingBag, User } from "@medusajs/icons"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -90,6 +91,10 @@ export default async function Nav() {
       </header>
 
       <MegaMenu sections={menuSections} />
+
+      {/* Commerce-type destinations (§9.1). Renders nothing while every
+          feature flag is off, so today's nav is unchanged. */}
+      <CommerceNav />
     </div>
   )
 }
