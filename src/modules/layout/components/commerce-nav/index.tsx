@@ -21,18 +21,14 @@ const DESTINATIONS = [
     blurb: "Sourced and flown in for you",
   },
   {
+    // One entry, not two. The guided configurator is a MODE inside /build
+    // (BRD §7.1), separately flagged so D-06's "assisted first" still
+    // holds — the flag decides whether the second mode appears, not
+    // whether there is a second destination.
     flag: "custom_build" as const,
     href: "/build",
     label: "Build Your Device",
     blurb: "Custom PCs and laptops",
-  },
-  {
-    // Its own flag, not custom_build: D-06 ships assisted requests first, so
-    // /build can be live while the configurator is still off.
-    flag: "build_configurator" as const,
-    href: "/build/pc",
-    label: "PC Builder",
-    blurb: "Pick your own parts",
   },
   {
     flag: "auction" as const,
