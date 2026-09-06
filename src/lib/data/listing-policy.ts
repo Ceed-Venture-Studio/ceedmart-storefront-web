@@ -63,24 +63,3 @@ export const listListingPolicies = async (
     .then((res) => res.policies ?? {})
     .catch(() => ({}))
 }
-
-/** Collect every variant/product pair from a list of products. */
-export const targetsFromProducts = (
-  products: { id: string; variants?: { id: string }[] | null }[]
-): PolicyTarget[] =>
-  products.flatMap((p) =>
-    (p.variants ?? []).map((v) => ({ variantId: v.id, productId: p.id }))
-  )
-
-/** The policy governing a product, given a map keyed by variant id.
- *  A product is non-standard if any of its variants is. */
-export const policyForProduct = (
-  product: { id: string; variants?: { id: string }[] | null },
-  policies: PolicyMap
-): ListingPolicy | null => {
-  for (const variant of product.variants ?? []) {
-    const policy = policies[variant.id]
-    if (policy) return policy
-  }
-  return null
-}

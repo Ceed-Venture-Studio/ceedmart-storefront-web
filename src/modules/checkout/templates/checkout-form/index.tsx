@@ -1,11 +1,8 @@
 import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { listCartPaymentMethods } from "@lib/data/payment"
 import { listShops } from "@lib/data/shops"
-import {
-  cartHasPreorder,
-  getPreorderOffer,
-  groupCartByFulfilment,
-} from "@lib/data/preorder"
+import { getPreorderOffer, groupCartByFulfilment } from "@lib/data/preorder"
+import { cartHasPreorder } from "@lib/util/fulfilment-groups"
 import { readCartCeedmart } from "@lib/data/ceedmart-metadata"
 import { listListingPolicies } from "@lib/data/listing-policy"
 import PreorderTerms from "@modules/checkout/components/preorder-terms"

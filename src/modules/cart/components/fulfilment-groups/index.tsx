@@ -1,6 +1,6 @@
 import { clx } from "@medusajs/ui"
 
-import type { FulfilmentGroup } from "@lib/data/preorder"
+import type { FulfilmentGroup } from "@lib/util/fulfilment-groups"
 
 // Fulfilment-group header for a mixed cart (BRD §9.2, D-04).
 //

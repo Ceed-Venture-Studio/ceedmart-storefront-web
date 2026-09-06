@@ -5,11 +5,8 @@ import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import PreorderPanel from "@modules/products/components/preorder-panel"
 import { getPreorderOffer } from "@lib/data/preorder"
-import {
-  listListingPolicies,
-  policyForProduct,
-  targetsFromProducts,
-} from "@lib/data/listing-policy"
+import { listListingPolicies } from "@lib/data/listing-policy"
+import { policyForProduct, targetsFromProducts } from "@lib/util/fulfilment-groups"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
