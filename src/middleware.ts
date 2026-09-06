@@ -142,10 +142,26 @@ export async function middleware(request: NextRequest) {
     )
   }
 
+  // Static assets are served as-is and must never be region-redirected.
+  //
+  // This check has to come BEFORE the country-code test below, not after.
+  // That test asks whether the first path segment CONTAINS the country
+  // code, and "logo.png" contains "ng" — so every PNG in /public was
+  // treated as a country-prefixed route and answered with a 307. Browsers
+  // survive that (they follow it and carry the cookie), but next/image
+  // fetches the source without one, gets the redirect, and renders
+  // "Unable to optimize image and unable to fallback to upstream image".
+  if (request.nextUrl.pathname.includes(".")) {
+    return NextResponse.next()
+  }
+
   const countryCode = await getCountryCode(request, regionMap)
 
+  // Exact match on the first segment. `includes` would also match any
+  // segment that merely contains the code — the bug above — and would let
+  // /nigeria or /english resolve as a region prefix.
   const urlHasCountryCode =
-    countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
+    countryCode && request.nextUrl.pathname.split("/")[1] === countryCode
 
   // Referral capture — any ?ref=<code> in the URL sets a 30-day cookie
   // that server actions later stamp onto the cart's
@@ -176,11 +192,6 @@ export async function middleware(request: NextRequest) {
     })
     setRefCookie(response)
     return response
-  }
-
-  // check if the url is a static asset
-  if (request.nextUrl.pathname.includes(".")) {
-    return NextResponse.next()
   }
 
   const redirectPath =
