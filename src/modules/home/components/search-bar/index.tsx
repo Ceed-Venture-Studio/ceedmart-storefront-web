@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useParams } from "next/navigation"
-import { useState, FormEvent } from "react"
+import { useState, useTransition, FormEvent } from "react"
 
 export default function SearchBar({
   buttonClassName,
@@ -14,11 +14,21 @@ export default function SearchBar({
   const router = useRouter()
   const { countryCode } = useParams()
 
+  // router.push to a server-rendered route resolves on the SERVER, so there is
+  // a gap of a second or more where nothing on the page changes. Without this
+  // the button looks broken and people press it again. useTransition is the
+  // only way to observe that gap — the navigation itself exposes no state.
+  const [isPending, startTransition] = useTransition()
+
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
-    if (query.trim()) {
-      router.push(`/${countryCode}/store?q=${encodeURIComponent(query.trim())}`)
+    const q = query.trim()
+    if (!q || isPending) {
+      return
     }
+    startTransition(() => {
+      router.push(`/${countryCode}/store?q=${encodeURIComponent(q)}`)
+    })
   }
 
   return (
@@ -50,21 +60,52 @@ export default function SearchBar({
         />
         <button
           type="submit"
-          className={buttonClassName || "absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-ceedmart-navy text-white flex items-center justify-center hover:bg-ceedmart-navy-light transition-colors"}
+          disabled={isPending || !query.trim()}
+          aria-busy={isPending}
+          aria-label={isPending ? "Searching" : "Search"}
+          className={
+            buttonClassName ||
+            "absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-ceedmart-navy text-white flex items-center justify-center hover:bg-ceedmart-navy-light transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-ceedmart-navy"
+          }
+          data-testid="hero-search-button"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-            />
-          </svg>
+          {isPending ? (
+            <svg
+              className="h-4 w-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth={4}
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
+          )}
         </button>
       </div>
     </form>

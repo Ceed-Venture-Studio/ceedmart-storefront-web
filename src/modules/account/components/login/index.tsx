@@ -10,7 +10,7 @@ type Props = {
 }
 
 const Login = ({ setCurrentView }: Props) => {
-  const [message, formAction] = useActionState(login, null)
+  const [message, formAction, isPending] = useActionState(login, null)
 
   return (
     <div
@@ -42,7 +42,12 @@ const Login = ({ setCurrentView }: Props) => {
           />
         </div>
         <ErrorMessage error={message} data-testid="login-error-message" />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
+        <SubmitButton
+          data-testid="sign-in-button"
+          className="w-full mt-6"
+          isLoading={isPending}
+          pendingText="Signing in…"
+        >
           Sign in
         </SubmitButton>
       </form>
@@ -51,7 +56,7 @@ const Login = ({ setCurrentView }: Props) => {
         <button
           onClick={() => setCurrentView(LOGIN_VIEW.REGISTER)}
           className="underline"
-          data-testid="register-button"
+          data-testid="register-link"
         >
           Join us
         </button>

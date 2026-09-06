@@ -14,7 +14,7 @@ type Props = {
 }
 
 const Register = ({ setCurrentView }: Props) => {
-  const [message, formAction] = useActionState(signup, null)
+  const [message, formAction, isPending] = useActionState(signup, null)
 
   return (
     <div
@@ -84,7 +84,12 @@ const Register = ({ setCurrentView }: Props) => {
           </LocalizedClientLink>
           .
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
+        <SubmitButton
+          className="w-full mt-6"
+          isLoading={isPending}
+          pendingText="Creating your account…"
+          data-testid="register-button"
+        >
           Join
         </SubmitButton>
       </form>
