@@ -46,7 +46,13 @@ const BuildEntry = ({ categories, buildType, countryCode }: Props) => {
       : null
 
   if (!selectable) {
-    return <RequestForm />
+    // Only one way in, so no picker — the form takes a reading measure
+    // rather than stretching across a 1440px container.
+    return (
+      <div className="max-w-2xl mx-auto w-full">
+        <RequestForm />
+      </div>
+    )
   }
 
   const options: { value: Mode; title: string; blurb: string }[] = [
@@ -68,7 +74,7 @@ const BuildEntry = ({ categories, buildType, countryCode }: Props) => {
     <div className="flex flex-col gap-8">
       <fieldset className="flex flex-col gap-3">
         <legend className="sr-only">How would you like to build it?</legend>
-        <div className="grid grid-cols-1 small:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 xsmall:grid-cols-2 gap-3 max-w-3xl mx-auto w-full">
           {options.map((option) => (
             <button
               key={option.value}
@@ -90,7 +96,7 @@ const BuildEntry = ({ categories, buildType, countryCode }: Props) => {
           ))}
         </div>
 
-        <Text className="txt-small text-ui-fg-muted">
+        <Text className="txt-small text-ui-fg-muted text-center max-w-3xl mx-auto">
           Either way a specialist confirms the parts, availability and the
           final price before you pay anything — and you can switch at any
           point.
@@ -98,7 +104,9 @@ const BuildEntry = ({ categories, buildType, countryCode }: Props) => {
       </fieldset>
 
       {mode === "describe" ? (
-        <RequestForm />
+        <div className="max-w-2xl mx-auto w-full">
+          <RequestForm />
+        </div>
       ) : (
         <Configurator
           categories={selectable}

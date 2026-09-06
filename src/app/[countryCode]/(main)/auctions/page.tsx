@@ -38,12 +38,12 @@ export default async function AuctionsPage() {
   ] as const
 
   return (
-    <div className="content-container py-12 small:py-16">
-      <header className="flex flex-col gap-3 mb-10 max-w-2xl">
-        <h1 className="text-3xl small:text-4xl font-bold text-ceedmart-navy">
+    <div className="content-container py-8 small:py-16">
+      <header className="flex flex-col items-center text-center gap-3 mb-8 small:mb-12">
+        <h1 className="text-2xl xsmall:text-3xl small:text-4xl font-bold text-ceedmart-navy">
           Auctions
         </h1>
-        <p className="text-ui-fg-subtle text-lg">
+        <p className="text-ui-fg-subtle text-base small:text-lg max-w-2xl">
           Limited stock, open-box and clearance items sold to the highest
           bidder. Every lot lists its condition before you bid.
         </p>
@@ -54,15 +54,15 @@ export default async function AuctionsPage() {
           No auctions running right now. Check back soon.
         </p>
       ) : (
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-10 small:gap-12">
           {sections
             .filter(([, items]) => items.length > 0)
             .map(([title, items]) => (
               <section key={title} className="flex flex-col gap-4">
-                <h2 className="text-xl font-semibold text-ui-fg-base">
+                <h2 className="text-lg small:text-xl font-semibold text-ui-fg-base">
                   {title}
                 </h2>
-                <div className="grid grid-cols-2 small:grid-cols-3 large:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-4 gap-y-6 small:gap-y-8">
                   {items.map((auction) => (
                     <AuctionCard key={auction.id} auction={auction} />
                   ))}

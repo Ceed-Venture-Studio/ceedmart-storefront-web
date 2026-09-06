@@ -35,12 +35,14 @@ export default async function PreorderPage(props: Props) {
   const unavailable = offers.filter((o) => !o.available)
 
   return (
-    <div className="content-container py-12 small:py-16">
-      <header className="flex flex-col gap-4 mb-10 max-w-2xl">
-        <h1 className="text-3xl small:text-4xl font-bold text-ceedmart-navy">
+    <div className="content-container py-8 small:py-16">
+      {/* Header centred, content full width — the intro keeps a reading
+          measure while the grid below uses the whole container. */}
+      <header className="flex flex-col items-center text-center gap-3 mb-8 small:mb-12">
+        <h1 className="text-2xl xsmall:text-3xl small:text-4xl font-bold text-ceedmart-navy">
           Pre-order from the US
         </h1>
-        <p className="text-ui-fg-subtle text-lg">
+        <p className="text-ui-fg-subtle text-base small:text-lg max-w-2xl">
           Things we don&apos;t hold in Nigeria, sourced from the United States
           and delivered to you. You pay one price up front — there&apos;s no
           customs bill waiting at the other end.
@@ -48,7 +50,7 @@ export default async function PreorderPage(props: Props) {
       </header>
 
       {/* The three facts that decide whether someone pre-orders at all. */}
-      <div className="grid grid-cols-1 small:grid-cols-3 gap-4 mb-12">
+      <div className="grid grid-cols-1 xsmall:grid-cols-3 gap-3 small:gap-4 mb-8 small:mb-12">
         {[
           [
             "One price, locked",
@@ -65,7 +67,7 @@ export default async function PreorderPage(props: Props) {
         ].map(([title, body]) => (
           <div
             key={title}
-            className="border border-grey-20 rounded-lg p-4 flex flex-col gap-1"
+            className="border border-grey-20 rounded-lg p-3 small:p-4 flex flex-col gap-1"
           >
             <span className="txt-medium-plus text-ui-fg-base">{title}</span>
             <span className="txt-small text-ui-fg-subtle">{body}</span>
@@ -86,10 +88,10 @@ export default async function PreorderPage(props: Props) {
       ) : (
         <div className="flex flex-col gap-12">
           <section className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold text-ui-fg-base">
+            <h2 className="text-lg small:text-xl font-semibold text-ui-fg-base">
               Available now
             </h2>
-            <div className="grid grid-cols-2 small:grid-cols-3 large:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-4 gap-y-6 small:gap-y-8">
               {available.map((offer) => (
                 <PreorderCard key={offer.id} offer={offer} />
               ))}
@@ -98,10 +100,10 @@ export default async function PreorderPage(props: Props) {
 
           {unavailable.length > 0 && (
             <section className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold text-ui-fg-base">
+              <h2 className="text-lg small:text-xl font-semibold text-ui-fg-base">
                 Temporarily unavailable
               </h2>
-              <div className="grid grid-cols-2 small:grid-cols-3 large:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 small:grid-cols-3 medium:grid-cols-4 gap-x-4 gap-y-6 small:gap-y-8">
                 {unavailable.map((offer) => (
                   <PreorderCard key={offer.id} offer={offer} />
                 ))}

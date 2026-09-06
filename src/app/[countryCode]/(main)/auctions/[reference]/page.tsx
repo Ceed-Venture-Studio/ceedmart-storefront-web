@@ -57,9 +57,12 @@ export default async function AuctionPage(props: Props) {
   }
 
   return (
-    <div className="content-container py-12">
-      <div className="grid grid-cols-1 large:grid-cols-[1fr_400px] gap-10 items-start">
-        <div className="flex flex-col gap-6">
+    <div className="content-container py-8 small:py-12">
+      <div className="grid grid-cols-1 small:grid-cols-[minmax(0,1fr)_minmax(0,360px)] medium:grid-cols-[minmax(0,1fr)_minmax(0,400px)] gap-6 small:gap-10 items-start">
+        {/* On a phone the bid panel leads: the current price and the time
+            left are why someone opened this page, and putting the images
+            and condition report above them buries both. */}
+        <div className="flex flex-col gap-5 small:gap-6 order-2 small:order-1">
           {summary.images?.[0] && (
             <div className="rounded-lg overflow-hidden bg-grey-5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -72,7 +75,7 @@ export default async function AuctionPage(props: Props) {
           )}
 
           <div className="flex flex-col gap-3">
-            <h1 className="text-2xl small:text-3xl font-bold text-ceedmart-navy">
+            <h1 className="text-xl xsmall:text-2xl small:text-3xl font-bold text-ceedmart-navy">
               {summary.title}
             </h1>
             <span className="txt-small text-ui-fg-muted font-mono">
@@ -86,7 +89,7 @@ export default async function AuctionPage(props: Props) {
             )}
           </div>
 
-          <dl className="grid grid-cols-2 small:grid-cols-3 gap-4 border-t border-ui-border-base pt-4">
+          <dl className="grid grid-cols-2 xsmall:grid-cols-3 gap-3 small:gap-4 border-t border-ui-border-base pt-4">
             {[
               ["Condition", summary.condition.replace(/_/g, " ")],
               [
@@ -117,7 +120,7 @@ export default async function AuctionPage(props: Props) {
           </p>
         </div>
 
-        <div className="large:sticky large:top-24">
+        <div className="order-1 small:order-2 small:sticky small:top-24">
           <BidPanel
             auctionId={summary.id}
             initial={live}

@@ -74,6 +74,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
   const [busy, setBusy] = useState(false)
 
   const slotRefs = useRef<Record<string, HTMLSelectElement | null>>({})
+  const estimateRef = useRef<HTMLDivElement | null>(null)
 
   const selections: Selection[] = useMemo(
     () =>
@@ -259,7 +260,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           onFocus={() => setActiveSlot(category.code)}
           onBlur={() => setActiveSlot(null)}
           onChange={(e) => choose(category.code, e.target.value)}
-          className="w-full rounded-md border border-ui-border-base bg-ui-bg-field px-3 py-2 txt-small text-ui-fg-base focus:outline-none focus:border-ceedmart-navy"
+          className="w-full rounded-md border border-ui-border-base bg-ui-bg-field px-3 py-2.5 small:py-2 text-base small:text-sm text-ui-fg-base focus:outline-none focus:border-ceedmart-navy"
         >
           <option value="">
             {category.is_required ? "Choose one…" : "None"}
@@ -311,9 +312,9 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
   }
 
   return (
-    <div className="grid grid-cols-1 large:grid-cols-[minmax(0,1fr)_minmax(0,420px)] gap-8 items-start">
+    <div className="grid grid-cols-1 small:grid-cols-[minmax(0,1fr)_minmax(0,380px)] medium:grid-cols-[minmax(0,1fr)_minmax(0,420px)] gap-6 small:gap-8 items-start pb-40 small:pb-0">
       {/* ── Choices ───────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-5 order-2 large:order-1">
+      <div className="flex flex-col gap-5 order-2 small:order-1">
         <section className="flex flex-col gap-2">
           <h2 className="txt-medium-plus text-ui-fg-base">The machine</h2>
           {physical.map(slotRow)}
@@ -330,8 +331,8 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
       </div>
 
       {/* ── The machine, drawn ────────────────────────────────────── */}
-      <aside className="order-1 large:order-2 large:sticky large:top-24 flex flex-col gap-4">
-        <div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-4">
+      <aside className="order-1 small:order-2 small:sticky small:top-24 flex flex-col gap-4">
+        <div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-3 small:p-4 [&_svg]:max-h-[38vh] small:[&_svg]:max-h-none [&_svg]:mx-auto">
           <BuildDiagram
             buildType={buildType}
             filled={filled}
@@ -346,7 +347,10 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           </Text>
         </div>
 
-        <div className="rounded-lg border border-ui-border-base p-4 flex flex-col gap-3">
+        <div
+          ref={estimateRef}
+          className="rounded-lg border border-ui-border-base p-4 flex flex-col gap-3 order-3 small:order-none"
+        >
           <div className="flex items-baseline justify-between">
             <Text className="txt-medium-plus text-ui-fg-base">Estimate</Text>
             {checking && (
@@ -426,12 +430,16 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
               onClick={save}
               isLoading={busy}
               disabled={selections.length === 0}
+              className="h-11 small:h-8"
             >
               {savedRef ? `Saved as ${savedRef}` : "Save this build"}
             </Button>
+            {/* Hidden on mobile — the sticky bar already carries it, and two
+                identical primary actions on one screen is a coin toss. */}
             <Button
               onClick={() => setShowContact(true)}
               disabled={!validation?.can_submit || busy}
+              className="hidden small:inline-flex"
             >
               Get a quote
             </Button>
@@ -447,13 +455,62 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
               <Input name="phone" placeholder="Phone (optional)" />
               <Input name="state" placeholder="Delivery state (optional)" />
               <Input name="notes" placeholder="Anything else? (optional)" />
-              <Button type="submit" isLoading={busy}>
+              <Button type="submit" isLoading={busy} className="h-11 small:h-8">
                 Send for quoting
               </Button>
             </form>
           )}
         </div>
       </aside>
+
+      {/* Mobile: the total and the next step follow you down the page. On a
+          phone the estimate card sits below fourteen dropdowns, and a
+          shopper adjusting parts should not have to scroll to see what it
+          costs. Hidden once the contact form is open — two competing
+          submit buttons is worse than none.
+          
+          Sits at bottom-[65px], not bottom-0: the storefront already has a
+          fixed mobile nav of that height at z-50, and a bar underneath it
+          would be half-covered. */}
+      {!showContact && selections.length > 0 && (
+        <div className="small:hidden fixed bottom-[65px] inset-x-0 z-40 border-t border-ui-border-base bg-ui-bg-base px-4 py-3 flex items-center gap-3">
+          <div className="flex flex-col min-w-0">
+            <span className="txt-small text-ui-fg-muted">Estimate</span>
+            <span className="txt-medium-plus text-ceedmart-navy tabular-nums truncate">
+              {naira(validation?.estimated_total ?? 0)}
+            </span>
+          </div>
+          {/* The label has to name the ACTUAL blocker. "0 left" was wrong
+              in the common case: nothing missing, but an unacknowledged
+              warning still holding submission — so the button read as
+              finished and did nothing when tapped. */}
+          <Button
+            className="ml-auto shrink-0 h-11 px-5"
+            onClick={() => {
+              if (validation?.can_submit) {
+                setShowContact(true)
+                return
+              }
+              // Blocked: take them to the thing that is blocking it rather
+              // than leaving a dead button.
+              const target =
+                validation?.blocking[0]?.categories[0] ??
+                validation?.missing[0]
+              if (target) focusSlot(target)
+              else estimateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+            }}
+            disabled={busy}
+          >
+            {validation?.can_submit
+              ? "Get a quote"
+              : (validation?.blocking.length ?? 0) > 0
+                ? "Fix a clash"
+                : (validation?.missing.length ?? 0) > 0
+                  ? `${validation!.missing.length} to choose`
+                  : "Confirm a warning"}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
