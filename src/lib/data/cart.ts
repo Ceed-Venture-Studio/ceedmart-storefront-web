@@ -17,6 +17,7 @@ import {
 import { getRegion } from "./regions"
 import { getLocale } from "@lib/data/locale-actions"
 import { mergeCeedmartMetadata, readCartCeedmart } from "./ceedmart-metadata"
+import { saveCustomerAddressIfNew } from "./customer"
 
 // M3 — Partner referral attribution.
 //
@@ -431,6 +432,18 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
         phone: formData.get("billing_address.phone"),
       }
     await updateCart(data)
+
+    // Copy the delivery address into the customer's address book so the next
+    // order can offer it. Checkout has always READ saved addresses — the
+    // "use one of your saved addresses" picker in shipping-address — but
+    // nothing ever wrote one, so that picker had never appeared for anyone.
+    //
+    // After updateCart, and deliberately not awaited into the failure path:
+    // the order is what matters, and a convenience copy that fails must not
+    // cost the customer their checkout.
+    if (formData.get("save_address") === "on") {
+      await saveCustomerAddressIfNew(data.shipping_address)
+    }
   } catch (e: any) {
     return e.message
   }

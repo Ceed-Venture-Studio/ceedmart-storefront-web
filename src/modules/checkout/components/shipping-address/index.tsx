@@ -59,6 +59,12 @@ const ShippingAddress = ({
     [cart?.region]
   )
 
+  // On by default: the customer is already typing the address, and the next
+  // checkout is materially shorter if it is remembered. Explicit rather than
+  // silent so someone shipping a one-off — a gift, a colleague's office —
+  // can decline without it landing in their address book.
+  const [saveAddress, setSaveAddress] = useState(true)
+
   // check if customer has saved addresses that are in the current region
   const addressesInRegion = useMemo(
     () =>
@@ -243,7 +249,7 @@ const ShippingAddress = ({
           </>
         )}
       </div>
-      <div className="my-8">
+      <div className="my-8 flex flex-col gap-y-4">
         <Checkbox
           label="Billing address same as shipping address"
           name="same_as_billing"
@@ -251,6 +257,18 @@ const ShippingAddress = ({
           onChange={onChange}
           data-testid="billing-address-checkbox"
         />
+        {/* Only for signed-in customers — there is no address book to save
+            into otherwise, and offering it to a guest promises something we
+            cannot deliver. */}
+        {customer && (
+          <Checkbox
+            label="Save this address for next time"
+            name="save_address"
+            checked={saveAddress}
+            onChange={() => setSaveAddress((v) => !v)}
+            data-testid="save-address-checkbox"
+          />
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         <Input

@@ -2,6 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
+import compareAddresses from "@lib/util/compare-addresses"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
@@ -227,6 +228,65 @@ export const addCustomerAddress = async (
     .catch((err) => {
       return { success: false, error: err.toString() }
     })
+}
+
+/**
+ * Save an address to the signed-in customer's address book, unless they
+ * already have it.
+ *
+ * Called from checkout, where the address has just been written to the CART.
+ * A cart address and a customer address are different records — the cart one
+ * is a snapshot of where this order goes, and copying it here is what makes
+ * it available to the next order.
+ *
+ * Deduped with the same comparison the checkout uses to decide whether
+ * billing matches shipping, so ordering twice to the same place does not
+ * accumulate identical entries. Someone who edits a single character gets a
+ * second address, which is correct: we cannot tell a correction from a
+ * genuinely different destination, and a spurious entry is easier to live
+ * with than a silently overwritten one.
+ *
+ * Never throws. This runs after the cart is already updated, and failing to
+ * save a convenience copy must not take down a checkout that has otherwise
+ * succeeded.
+ */
+export const saveCustomerAddressIfNew = async (
+  address: HttpTypes.StoreCreateCustomerAddress
+): Promise<{ saved: boolean; reason?: string }> => {
+  try {
+    const customer = await retrieveCustomer()
+    if (!customer) {
+      return { saved: false, reason: "not signed in" }
+    }
+
+    const existing = customer.addresses ?? []
+    if (existing.some((a) => compareAddresses(a, address))) {
+      return { saved: false, reason: "already saved" }
+    }
+
+    const headers = { ...(await getAuthHeaders()) }
+    await sdk.store.customer.createAddress(
+      {
+        ...address,
+        // The first address a customer saves becomes their default for both,
+        // so a returning customer has something preselected rather than a
+        // list where nothing is chosen.
+        is_default_shipping: existing.length === 0,
+        is_default_billing: existing.length === 0,
+      },
+      {},
+      headers
+    )
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+    return { saved: true }
+  } catch (err: any) {
+    console.warn(
+      `[checkout] could not save address to the customer's address book: ${err?.message ?? err}`
+    )
+    return { saved: false, reason: "error" }
+  }
 }
 
 export const deleteCustomerAddress = async (

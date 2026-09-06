@@ -6,6 +6,12 @@ type CheckboxProps = {
   onChange?: () => void
   label: string
   name?: string
+  /**
+   * Defaults to `name`. This used to be the constant "checkbox", which is
+   * fine until a form has two — then both labels point at the first input
+   * and clicking the second label toggles the wrong box.
+   */
+  id?: string
   'data-testid'?: string
 }
 
@@ -14,13 +20,16 @@ const CheckboxWithLabel: React.FC<CheckboxProps> = ({
   onChange,
   label,
   name,
+  id,
   'data-testid': dataTestId
 }) => {
+  const inputId = id ?? name ?? "checkbox"
+
   return (
     <div className="flex items-center space-x-2 ">
       <Checkbox
         className="text-base-regular flex items-center gap-x-2"
-        id="checkbox"
+        id={inputId}
         role="checkbox"
         type="button"
         checked={checked}
@@ -30,7 +39,7 @@ const CheckboxWithLabel: React.FC<CheckboxProps> = ({
         data-testid={dataTestId}
       />
       <Label
-        htmlFor="checkbox"
+        htmlFor={inputId}
         className="!transform-none !txt-medium"
         size="large"
       >
