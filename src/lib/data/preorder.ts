@@ -123,15 +123,69 @@ export type PreorderListItem = {
  * an offer's availability window can close at any time. A stale "arrives by
  * the 19th" is worse than one extra request.
  */
-export const listPreorderOffers = async (
+export type PreorderFilters = {
   state?: string | null
-): Promise<PreorderListItem[]> => {
+  q?: string | null
+  condition?: string | null
+  source?: string | null
+  max_days?: string | null
+  min_price?: string | null
+  max_price?: string | null
+  sort?: string | null
+}
+
+export type PreorderFacets = {
+  conditions: string[]
+  sources: string[]
+  max_days: number
+  price_range: { min: number; max: number } | null
+}
+
+export type PreorderListResult = {
+  preorders: PreorderListItem[]
+  count: number
+  total: number
+  facets: PreorderFacets
+}
+
+const EMPTY_FACETS: PreorderFacets = {
+  conditions: [],
+  sources: [],
+  max_days: 0,
+  price_range: null,
+}
+
+export const listPreorderOffers = async (
+  filters: PreorderFilters | string | null = null
+): Promise<PreorderListResult> => {
+  // Accepts a bare state string as well, because that is how this was called
+  // before filters existed and the pre-order detail page still does.
+  const f: PreorderFilters =
+    typeof filters === "string" ? { state: filters } : (filters ?? {})
+
+  const query: Record<string, string> = {}
+  for (const [key, value] of Object.entries(f)) {
+    if (value != null && String(value).trim()) {
+      query[key] = String(value).trim()
+    }
+  }
+
   return await sdk.client
-    .fetch<{ preorders: PreorderListItem[] }>("/store/preorders", {
+    .fetch<PreorderListResult>("/store/preorders", {
       method: "GET",
-      query: state ? { state } : undefined,
+      query: Object.keys(query).length ? query : undefined,
       cache: "no-store",
     })
-    .then((res) => res.preorders ?? [])
-    .catch(() => [])
+    .then((res) => ({
+      preorders: res.preorders ?? [],
+      count: res.count ?? 0,
+      total: res.total ?? 0,
+      facets: res.facets ?? EMPTY_FACETS,
+    }))
+    .catch(() => ({
+      preorders: [],
+      count: 0,
+      total: 0,
+      facets: EMPTY_FACETS,
+    }))
 }

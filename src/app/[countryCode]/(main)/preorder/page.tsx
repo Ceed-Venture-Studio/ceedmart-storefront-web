@@ -2,12 +2,21 @@ import { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { listPreorderOffers } from "@lib/data/preorder"
+import PreorderFilters from "@modules/preorder/components/preorder-filters"
 import { isFeatureEnabled } from "@lib/data/feature-flags"
 import PreorderCard from "@modules/products/components/preorder-card"
 
 type Props = {
   params: Promise<{ countryCode: string }>
-  searchParams: Promise<{ state?: string }>
+  searchParams: Promise<{
+    state?: string
+    q?: string
+    condition?: string
+    source?: string
+    max_days?: string
+    max_price?: string
+    sort?: string
+  }>
 }
 
 export const metadata: Metadata = {
@@ -24,15 +33,15 @@ export const metadata: Metadata = {
 // D-02 made the price final — so both are said plainly at the top rather
 // than left to the product page.
 export default async function PreorderPage(props: Props) {
-  const { state } = await props.searchParams
+  const params = await props.searchParams
 
   if (!(await isFeatureEnabled("preorder"))) {
     notFound()
   }
 
-  const offers = await listPreorderOffers(state)
-  const available = offers.filter((o) => o.available)
-  const unavailable = offers.filter((o) => !o.available)
+  const { preorders, count, total, facets } = await listPreorderOffers(params)
+  const available = preorders.filter((o) => o.available)
+  const unavailable = preorders.filter((o) => !o.available)
 
   return (
     <div className="content-container py-8 small:py-16">
@@ -75,15 +84,38 @@ export default async function PreorderPage(props: Props) {
         ))}
       </div>
 
-      {offers.length === 0 ? (
+      {/* Hidden when there is nothing to search. A filter bar above an empty
+          list only asks the customer to rule out what is already absent. */}
+      {total > 0 && (
+        <PreorderFilters facets={facets} count={count} total={total} />
+      )}
+
+      {preorders.length === 0 ? (
         <div className="border border-grey-20 rounded-lg p-8 text-center">
-          <p className="txt-medium-plus text-ui-fg-base mb-1">
-            Nothing available to pre-order right now
-          </p>
-          <p className="txt-small text-ui-fg-subtle">
-            We add items as we confirm them with our US suppliers. Check back
-            soon.
-          </p>
+          {total > 0 ? (
+            <>
+              {/* Filtered to nothing is a different situation from having
+                  nothing, and telling someone to "check back soon" when the
+                  answer is to widen their search is unhelpful. */}
+              <p className="txt-medium-plus text-ui-fg-base mb-1">
+                No pre-orders match that
+              </p>
+              <p className="txt-small text-ui-fg-subtle">
+                Try a different search, or clear the filters to see all{" "}
+                {total} pre-order{total === 1 ? "" : "s"}.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="txt-medium-plus text-ui-fg-base mb-1">
+                Nothing available to pre-order right now
+              </p>
+              <p className="txt-small text-ui-fg-subtle">
+                We add items as we confirm them with our US suppliers. Check
+                back soon.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-12">
