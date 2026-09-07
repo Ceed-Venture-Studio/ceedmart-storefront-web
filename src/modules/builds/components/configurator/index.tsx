@@ -94,13 +94,63 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
 
   const filled = useMemo(() => new Set(Object.keys(picks)), [picks])
 
+  // ── Brand filtering ────────────────────────────────────────────────────
+  // An option may declare `brands`. Choosing Apple then hides every Intel
+  // and AMD chip, and leaves Tower and Studio as the only form factors —
+  // rather than listing parts that cannot be bought together and objecting
+  // afterwards. Options with no `brands` key belong to every brand.
+  //
+  // Filtering, not disabling: a list of things you are not allowed to pick
+  // is longer and no more useful than a list of things you can.
+  const selectedBrand = useMemo(() => {
+    const pick = picks["brand"]
+    if (!pick) return null
+    const option = categories
+      .find((c) => c.code === "brand")
+      ?.options.find((o) => o.id === pick.optionId)
+    return (option?.attributes as Record<string, unknown> | undefined)?.brand
+      ? String((option!.attributes as Record<string, unknown>).brand)
+      : option?.label ?? null
+  }, [picks, categories])
+
+  const visible = useMemo(() => {
+    if (!selectedBrand) return categories
+    return categories.map((category) => ({
+      ...category,
+      options: category.options.filter((option) => {
+        const brands = (option.attributes as Record<string, unknown> | undefined)
+          ?.brands
+        if (!Array.isArray(brands) || brands.length === 0) return true
+        return brands.map(String).includes(selectedBrand)
+      }),
+    }))
+  }, [categories, selectedBrand])
+
+  // Changing brand can hide something already chosen — pick an Intel chip,
+  // then switch to Apple, and the selection survives out of sight, blocking
+  // submission with a rule about a part no longer on screen. Drop anything
+  // the new brand does not offer.
+  useEffect(() => {
+    const allowed = new Set(visible.flatMap((c) => c.options.map((o) => o.id)))
+    const stale = Object.entries(picks).filter(
+      ([, pick]) => pick && !allowed.has(pick.optionId)
+    )
+    if (!stale.length) return
+    setPicks((current) => {
+      const next = { ...current }
+      for (const [code] of stale) delete next[code]
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible])
+
   // Physical slots go in the diagram; the rest are listed under it.
   const [physical, extras] = useMemo(
     () => [
-      categories.filter((c) => !NON_PHYSICAL.has(c.code)),
-      categories.filter((c) => NON_PHYSICAL.has(c.code)),
+      visible.filter((c) => !NON_PHYSICAL.has(c.code)),
+      visible.filter((c) => NON_PHYSICAL.has(c.code)),
     ],
-    [categories]
+    [visible]
   )
 
   // Debounced server validation (§7.9 — the server is the authority).
@@ -241,7 +291,11 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
             {LABELS[category.code] ?? category.label}
             {category.is_required && <span className="text-ui-fg-error"> *</span>}
           </label>
-          {option?.indicative_price != null && (
+          {/* Zero is not a price. Many parts now carry none — an Apple chip
+              is priced with the machine, a screen size costs nothing on its
+              own — and "₦0" beside them reads as free rather than as
+              "quoted later". */}
+          {!!option?.indicative_price && (
             <span className="txt-small tabular-nums text-ui-fg-subtle">
               {naira(option.indicative_price * (chosen?.quantity ?? 1))}
             </span>
@@ -268,7 +322,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           {category.options.map((o) => (
             <option key={o.id} value={o.id} disabled={o.is_fixed}>
               {o.label}
-              {o.indicative_price != null ? ` — ${naira(o.indicative_price)}` : ""}
+              {o.indicative_price ? ` — ${naira(o.indicative_price)}` : ""}
               {o.is_fixed ? " (fixed on this model)" : ""}
             </option>
           ))}
@@ -352,18 +406,21 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           className="rounded-lg border border-ui-border-base p-4 flex flex-col gap-3 order-3 small:order-none"
         >
           <div className="flex items-baseline justify-between">
-            <Text className="txt-medium-plus text-ui-fg-base">Estimate</Text>
+            <Text className="txt-medium-plus text-ui-fg-base">Your build</Text>
             {checking && (
               <Text className="txt-small text-ui-fg-muted">Checking…</Text>
             )}
           </div>
 
-          <Text className="text-2xl font-bold text-ceedmart-navy tabular-nums">
-            {naira(validation?.estimated_total ?? 0)}
-          </Text>
-          <Text className="txt-small text-ui-fg-muted">
-            An estimate, not a quote. A specialist confirms parts, availability
-            and the final price before you pay anything.
+          {/* No running total, deliberately.
+              The prices on these parts are indicative, most slots are now
+              optional, and a figure that moves as someone fills in a
+              dropdown reads as the price — then a specialist quotes
+              something else. Better to promise the quote than to show a
+              number we will not honour. */}
+          <Text className="txt-small text-ui-fg-subtle">
+            A specialist prices this once you send it, confirming every part
+            is available before anything is charged.
           </Text>
 
           {/* Blocking — cannot be dismissed (§7.3). */}
@@ -475,9 +532,9 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
       {!showContact && selections.length > 0 && (
         <div className="small:hidden fixed bottom-[65px] inset-x-0 z-40 border-t border-ui-border-base bg-ui-bg-base px-4 py-3 flex items-center gap-3">
           <div className="flex flex-col min-w-0">
-            <span className="txt-small text-ui-fg-muted">Estimate</span>
-            <span className="txt-medium-plus text-ceedmart-navy tabular-nums truncate">
-              {naira(validation?.estimated_total ?? 0)}
+            <span className="txt-small text-ui-fg-muted">Your build</span>
+            <span className="txt-medium-plus text-ceedmart-navy truncate">
+              {filled.size} part{filled.size === 1 ? "" : "s"} chosen
             </span>
           </div>
           {/* The label has to name the ACTUAL blocker. "0 left" was wrong
