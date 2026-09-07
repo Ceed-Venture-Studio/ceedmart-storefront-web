@@ -306,101 +306,348 @@ const Desktop = ({ filled, active, onHover, onSelect }: Props) => {
 
 // ─── Laptop ───────────────────────────────────────────────────────────────
 
+// ─── Isometric helpers ────────────────────────────────────────────────────
+//
+// The laptop is drawn in true isometric rather than as extruded rectangles,
+// because a laptop is a recognisable object and a stack of boxes is not.
+// Coordinates are given in machine space — x across the chassis, y back into
+// it, z up — and projected here, so the drawing below reads as measurements
+// of a laptop rather than as SVG path soup.
+
+const ISO_X = 0.866 // cos 30°
+const ISO_Y = 0.5 // sin 30°
+
+const iso = (x: number, y: number, z = 0): [number, number] => [
+  (x - y) * ISO_X,
+  (x + y) * ISO_Y - z,
+]
+
+const poly = (points: [number, number, number][]): string =>
+  points.map((p) => iso(...p).join(",")).join(" ")
+
+/** A flat isometric panel: four corners on one z plane. */
+const Panel = ({
+  x,
+  y,
+  w,
+  d,
+  z = 0,
+  cls,
+}: {
+  x: number
+  y: number
+  w: number
+  d: number
+  z?: number
+  cls: string
+}) => (
+  <polygon
+    points={poly([
+      [x, y, z],
+      [x + w, y, z],
+      [x + w, y + d, z],
+      [x, y + d, z],
+    ])}
+    className={cls}
+  />
+)
+
+/**
+ * A component sitting on the chassis floor: a slab with visible thickness.
+ *
+ * Top face plus the two walls that face the viewer, which in this projection
+ * are the +x and +y sides. Drawing all six would be wasted ink — the others
+ * are never visible.
+ */
+const Slab = ({
+  x,
+  y,
+  w,
+  d,
+  h = 6,
+  z = 0,
+  cls,
+}: {
+  x: number
+  y: number
+  w: number
+  d: number
+  h?: number
+  z?: number
+  cls: string
+}) => (
+  <g>
+    <polygon
+      points={poly([
+        [x, y, z + h],
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x, y + d, z + h],
+      ])}
+      className={cls}
+    />
+    <polygon
+      points={poly([
+        [x, y + d, z + h],
+        [x + w, y + d, z + h],
+        [x + w, y + d, z],
+        [x, y + d, z],
+      ])}
+      className={cls}
+    />
+    <polygon
+      points={poly([
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x + w, y + d, z],
+        [x + w, y, z],
+      ])}
+      className={cls}
+    />
+  </g>
+)
+
+/** A label that stays upright over an isometric point. */
+const IsoLabel = ({
+  x,
+  y,
+  z = 0,
+  dx = 0,
+  dy = 0,
+  children,
+}: {
+  x: number
+  y: number
+  z?: number
+  dx?: number
+  dy?: number
+  children: React.ReactNode
+}) => {
+  const [px, py] = iso(x, y, z)
+  return (
+    <text
+      x={px + dx}
+      y={py + dy}
+      textAnchor="middle"
+      className="fill-ui-fg-muted text-[11px] pointer-events-none select-none"
+    >
+      {children}
+    </text>
+  )
+}
+
 const Laptop = ({ filled, active, onHover, onSelect }: Props) => {
   const is = (c: string) => filled.has(c)
   const on = (c: string) => active === c
   const r = (c: string) => partClass(is(c), on(c))
 
-  // Internals sit in a strip along the top of the base, where they
-  // physically live. Labels go INSIDE each part rather than floating above:
-  // above the strip is the hinge line, and a caption there collides with
-  // the chassis outline at every width.
-  // cpu and memory, not laptop_cpu and laptop_memory. The laptop now shares
-  // the desktop's processor, memory and storage slots — the laptop-specific
-  // ones are retired, so pointing at them here drew four parts that could
-  // never light up and did nothing when clicked.
-  const internals: [string, number, number][] = [
-    ["cpu", 76, 62],
-    ["memory", 146, 58],
-    ["storage", 212, 58],
-    ["laptop_battery", 278, 62],
-  ]
-  const INTERNAL_LABEL: Record<string, string> = {
-    cpu: "CPU",
-    memory: "RAM",
-    storage: "SSD",
-    laptop_battery: "Battery",
-  }
+  // Machine space, in millimetres-ish. The base is a shallow tray; the
+  // bottom cover floats above it, which is the only view in which the
+  // battery, drive, memory and processor are all visible at once — the
+  // reason a real service drawing uses it.
+  const W = 300 // across
+  const Dp = 210 // front to back
+  const WALL = 10 // chassis wall
+  const LIFT = 250 // clears the tray: the tray is 255 units tall on screen
 
   return (
     <svg
-      viewBox="-6 -14 424 360"
+      viewBox="-330 -268 600 640"
       className="w-full h-auto"
       role="img"
-      aria-label="Laptop build diagram"
+      aria-label="Laptop build diagram, bottom cover removed"
     >
-      {/* Chassis — lid and base together are the model */}
-      <Region code="laptop_model" filled={is("laptop_model")} active={on("laptop_model")} onHover={onHover} onSelect={onSelect}>
-        <Box x={52} y={10} w={296} h={182} rx={10} cls={r("laptop_model")} />
-        <path d="M 20 318 L 58 196 L 342 196 L 380 318 Z" className={r("laptop_model")} />
-        <Tick x={338} y={22} show={is("laptop_model")} />
-      </Region>
-
-      {/* Screen — inset in the lid */}
+      {/* ── Screen, hinged at the back and folded down behind ───────────── */}
       <Region code="laptop_display" filled={is("laptop_display")} active={on("laptop_display")} onHover={onHover} onSelect={onSelect}>
-        <Box x={68} y={24} w={264} h={154} rx={4} cls={r("laptop_display")} />
-        <Caption x={200} y={106}>Screen</Caption>
-        <Tick x={320} y={36} show={is("laptop_display")} />
+        <Panel x={0} y={Dp + 6} w={W} d={158} cls={r("laptop_display")} />
+        <Panel
+          x={16}
+          y={Dp + 22}
+          w={W - 32}
+          d={128}
+          z={0.4}
+          cls="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+        />
+        <IsoLabel x={W / 2} y={Dp + 86}>
+          Screen
+        </IsoLabel>
       </Region>
 
-      {/* Internals, along the top of the base */}
-      {internals.map(([code, x, w]) => (
-        <Region key={code} code={code} filled={is(code)} active={on(code)} onHover={onHover} onSelect={onSelect}>
-          <Box x={x} y={204} w={w} h={22} rx={3} cls={r(code)} depth={5} />
-          <text
-            x={x + w / 2}
-            y="219"
-            textAnchor="middle"
-            className="fill-ui-fg-muted [font-size:10px] pointer-events-none select-none"
-          >
-            {INTERNAL_LABEL[code]}
-          </text>
-          <Tick x={x + w - 4} y={204} show={is(code)} />
-        </Region>
-      ))}
+      {/* ── Chassis tray ────────────────────────────────────────────────── */}
+      <g className="pointer-events-none">
+        {/* outer walls */}
+        <polygon
+          points={poly([
+            [0, 0, 0],
+            [W, 0, 0],
+            [W, 0, -22],
+            [0, 0, -22],
+          ])}
+          className="fill-grey-10/50 stroke-grey-40 [stroke-width:1]"
+        />
+        <polygon
+          points={poly([
+            [W, 0, 0],
+            [W, Dp, 0],
+            [W, Dp, -22],
+            [W, 0, -22],
+          ])}
+          className="fill-grey-10/50 stroke-grey-40 [stroke-width:1]"
+        />
+        {/* floor */}
+        <Panel x={0} y={0} w={W} d={Dp} cls="fill-white stroke-grey-40 [stroke-width:1]" />
+        {/* inner lip, so the tray reads as having walls rather than being flat */}
+        <Panel
+          x={WALL}
+          y={WALL}
+          w={W - WALL * 2}
+          d={Dp - WALL * 2}
+          cls="fill-transparent stroke-grey-30 [stroke-width:0.8]"
+        />
+      </g>
 
-      {/* Keyboard deck */}
-      <Region code="laptop_keyboard" filled={is("laptop_keyboard")} active={on("laptop_keyboard")} onHover={onHover} onSelect={onSelect}>
-        <Box x={84} y={238} w={232} h={40} rx={4} cls={r("laptop_keyboard")} />
-        {[0, 1, 2].map((row) =>
-          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((col) => (
-            <rect
-              key={`${row}-${col}`}
-              x={92 + col * 22}
-              y={244 + row * 11}
-              width="16"
-              height="7"
-              rx="1.5"
-              className={
-                is("laptop_keyboard")
-                  ? "fill-ceedmart-navy/25 stroke-none"
-                  : "fill-grey-20 stroke-none"
-              }
+      {/* ── Battery: the big slab across the front ──────────────────────── */}
+      <Region code="laptop_battery" filled={is("laptop_battery")} active={on("laptop_battery")} onHover={onHover} onSelect={onSelect}>
+        <Slab x={26} y={20} w={W - 52} d={78} h={9} cls={r("laptop_battery")} />
+        {[0, 1, 2].map((i) => (
+          <Panel
+            key={i}
+            x={38 + i * 84}
+            y={30}
+            w={72}
+            d={58}
+            z={9.4}
+            cls="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+          />
+        ))}
+        <IsoLabel x={W / 2} y={59} z={16}>
+          Battery
+        </IsoLabel>
+      </Region>
+
+      {/* ── Board along the back, carrying the processor and memory ─────── */}
+      <g className="pointer-events-none">
+        <Slab x={26} y={116} w={W - 52} d={72} h={3} cls="fill-grey-10/60 stroke-grey-40 [stroke-width:0.9]" />
+      </g>
+
+      {/* Cooling: fan and heat pipe, drawn because a laptop has them and a
+          drawing without them looks like a diagram of nothing in particular.
+          Not a slot — no Region, no pointer. */}
+      <g className="pointer-events-none">
+        <ellipse
+          cx={iso(66, 152, 6)[0]}
+          cy={iso(66, 152, 6)[1]}
+          rx={30}
+          ry={17}
+          className="fill-white stroke-grey-40 [stroke-width:0.9]"
+        />
+        <ellipse
+          cx={iso(66, 152, 6)[0]}
+          cy={iso(66, 152, 6)[1]}
+          rx={11}
+          ry={6}
+          className="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+        />
+        <polyline
+          points={poly([
+            [96, 152, 7],
+            [150, 152, 7],
+            [150, 138, 7],
+          ])}
+          className="fill-none stroke-grey-40 [stroke-width:2.5] [stroke-linejoin:round]"
+        />
+      </g>
+
+      {/* ── Processor, under the heat pipe ──────────────────────────────── */}
+      <Region code="cpu" filled={is("cpu")} active={on("cpu")} onHover={onHover} onSelect={onSelect}>
+        <Slab x={132} y={124} w={44} d={40} h={5} z={3} cls={r("cpu")} />
+        <IsoLabel x={154} y={144} z={12}>
+          CPU
+        </IsoLabel>
+      </Region>
+
+      {/* ── Memory: two stacked modules ─────────────────────────────────── */}
+      <Region code="memory" filled={is("memory")} active={on("memory")} onHover={onHover} onSelect={onSelect}>
+        <Slab x={188} y={122} w={74} d={16} h={4} z={3} cls={r("memory")} />
+        <Slab x={188} y={146} w={74} d={16} h={4} z={3} cls={r("memory")} />
+        <IsoLabel x={225} y={130} z={16}>
+          RAM
+        </IsoLabel>
+      </Region>
+
+      {/* ── Storage: an M.2 stick ───────────────────────────────────────── */}
+      <Region code="storage" filled={is("storage")} active={on("storage")} onHover={onHover} onSelect={onSelect}>
+        <Slab x={48} y={168} w={78} d={16} h={4} z={3} cls={r("storage")} />
+        <IsoLabel x={87} y={176} z={14}>
+          SSD
+        </IsoLabel>
+      </Region>
+
+      {/* ── Bottom cover, floating off ──────────────────────────────────── */}
+      <g className="pointer-events-none">
+        <Panel
+          x={0}
+          y={0}
+          w={W}
+          d={Dp}
+          z={LIFT}
+          cls="fill-white stroke-grey-40 [stroke-width:1]"
+        />
+        {/* vents */}
+        {[0, 1, 2, 3, 4].map((i) => (
+          <Panel
+            key={i}
+            x={104 + i * 16}
+            y={30}
+            w={7}
+            d={44}
+            z={LIFT + 0.4}
+            cls="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+          />
+        ))}
+        {/* feet */}
+        {[
+          [24, 22],
+          [W - 34, 22],
+          [24, Dp - 32],
+          [W - 34, Dp - 32],
+        ].map(([fx, fy], i) => (
+          <ellipse
+            key={i}
+            cx={iso(fx, fy, LIFT)[0]}
+            cy={iso(fx, fy, LIFT)[1]}
+            rx={7}
+            ry={4}
+            className="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+          />
+        ))}
+        <IsoLabel x={W / 2} y={Dp - 46} z={LIFT + 6}>
+          Bottom cover
+        </IsoLabel>
+      </g>
+
+      {/* Guide lines showing where the cover drops on. Dotted and faint —
+          they explain the explosion without competing with the parts. */}
+      <g className="pointer-events-none">
+        {[
+          [0, 0],
+          [W, 0],
+          [W, Dp],
+        ].map(([gx, gy], i) => {
+          const [x1, y1] = iso(gx, gy, 0)
+          const [x2, y2] = iso(gx, gy, LIFT)
+          return (
+            <line
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              className="stroke-grey-30 [stroke-width:0.7] [stroke-dasharray:2_4]"
             />
-          ))
-        )}
-        <Tick x={306} y={246} show={is("laptop_keyboard")} />
-      </Region>
-
-      {/* Trackpad — decoration, not a slot */}
-      <rect
-        x="172"
-        y="286"
-        width="56"
-        height="18"
-        rx="3"
-        className="fill-transparent stroke-grey-30 [stroke-width:1]"
-      />
+          )
+        })}
+      </g>
     </svg>
   )
 }
