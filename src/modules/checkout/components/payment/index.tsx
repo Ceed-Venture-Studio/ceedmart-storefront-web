@@ -3,6 +3,10 @@
 import { RadioGroup } from "@headlessui/react"
 import { isStripeLike, isPulsePay, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
+import {
+  listPulsePaymentOptions,
+  type PulsePaymentOption,
+} from "@lib/data/payment"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
 import ErrorMessage from "@modules/checkout/components/error-message"
@@ -39,6 +43,21 @@ const Payment = ({
   // Kept after the tab opens so a customer who closes it, or whose browser
   // blocked it, has a way back to the same payment rather than starting over.
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
+
+  // The gateways this shop can actually charge with, straight from Pulse.
+  // Medusa lists one Pulse row; the real choice sits a level below it and
+  // changes on the Pulse dashboard without a deploy, so it cannot come from
+  // config here.
+  const [pulseOptions, setPulseOptions] = useState<PulsePaymentOption[] | null>(
+    null
+  )
+  const [selectedChannel, setSelectedChannel] = useState<string | undefined>()
+
+  // Whether to name a gateway when creating the payment. With one
+  // configured Pulse resolves it and we send nothing; it refuses to guess
+  // between several, so a choice is only meaningful when there is one.
+  const pulseChannel =
+    pulseOptions && pulseOptions.length > 1 ? selectedChannel : undefined
 
   const isOpen = searchParams.get("step") === "payment"
 
@@ -115,7 +134,8 @@ const Payment = ({
       if (isPulsePay(selectedPaymentMethod)) {
         const result = await initiatePaymentSession(cart, {
           provider_id: selectedPaymentMethod,
-        })
+          ...(pulseChannel ? { data: { channel: pulseChannel } } : {}),
+        } as any)
 
         if (result?.checkout_url) {
           setCheckoutUrl(result.checkout_url)
@@ -160,6 +180,21 @@ const Payment = ({
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+    let cancelled = false
+    listPulsePaymentOptions().then(({ options }) => {
+      if (!cancelled) {
+        setPulseOptions(options)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen])
 
   // Clean up session_id from URL on return from payment provider
   useEffect(() => {
@@ -271,6 +306,55 @@ const Payment = ({
               account for itself: say where they went, and give them a way
               back if that tab was blocked or closed. Without this the page
               just sits there looking like the button did nothing. */}
+          {/* Named gateways, straight from Pulse. Shown only when there is
+              a decision to make — one option is not a choice, it is a label,
+              and Pulse resolves it for us. */}
+          {isPulsePay(selectedPaymentMethod) &&
+            pulseOptions &&
+            pulseOptions.length > 1 && (
+              <div className="mt-4" data-testid="pulse-channel-picker">
+                <Text className="txt-medium-plus text-ui-fg-base mb-2">
+                  Pay with
+                </Text>
+                <div className="flex flex-col gap-y-2">
+                  {pulseOptions.map((option) => (
+                    <label
+                      key={option.provider}
+                      className="flex items-center gap-x-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="pulse_channel"
+                        value={option.provider}
+                        checked={selectedChannel === option.provider}
+                        onChange={() => setSelectedChannel(option.provider)}
+                      />
+                      <span className="txt-medium">{option.displayName}</span>
+                      {!option.isLive && (
+                        <span className="txt-compact-xsmall rounded bg-ui-tag-orange-bg text-ui-tag-orange-text px-1.5 py-0.5">
+                          test mode
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* A shop quietly running on test credentials looks exactly like
+              one taking real money. Say so where the customer would notice. */}
+          {isPulsePay(selectedPaymentMethod) &&
+            pulseOptions?.length === 1 &&
+            !pulseOptions[0].isLive && (
+              <Text
+                className="txt-compact-small text-ui-tag-orange-text mt-3"
+                data-testid="pulse-test-mode-notice"
+              >
+                Test mode — {pulseOptions[0].displayName} is using test
+                credentials, so no real payment will be taken.
+              </Text>
+            )}
+
           {checkoutUrl && (
             <div
               className="mt-4 rounded-md border border-ui-border-base bg-ui-bg-subtle p-4"
