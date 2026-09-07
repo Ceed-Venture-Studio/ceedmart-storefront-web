@@ -212,100 +212,6 @@ const Caption = ({
 
 // ─── Desktop ──────────────────────────────────────────────────────────────
 
-const Desktop = ({ filled, active, onHover, onSelect }: Props) => {
-  const is = (c: string) => filled.has(c)
-  const on = (c: string) => active === c
-  const r = (c: string) => partClass(is(c), on(c))
-
-  return (
-    <svg
-      viewBox="-6 -22 432 496"
-      className="w-full h-auto"
-      role="img"
-      aria-label="Desktop PC build diagram"
-    >
-      {/* Case — the outline everything sits inside */}
-      <Region code="case" filled={is("case")} active={on("case")} onHover={onHover} onSelect={onSelect}>
-        <Box x={14} y={14} w={372} h={442} rx={14} cls={r("case")} depth={16} />
-      </Region>
-
-      {/* Motherboard */}
-      <Region code="motherboard" filled={is("motherboard")} active={on("motherboard")} onHover={onHover} onSelect={onSelect}>
-        <Box x={42} y={44} w={240} h={250} rx={6} cls={r("motherboard")} />
-        <Caption x={214} y={60}>Motherboard</Caption>
-      </Region>
-
-      {/* Cooler sits on top of the CPU */}
-      <Region code="cpu_cooler" filled={is("cpu_cooler")} active={on("cpu_cooler")} onHover={onHover} onSelect={onSelect}>
-        <Box x={74} y={80} w={86} h={46} rx={5} cls={r("cpu_cooler")} />
-        <circle cx="117" cy="103" r="15" className={r("cpu_cooler")} />
-        <Caption x={117} y={74}>Cooler</Caption>
-        <Tick x={152} y={88} show={is("cpu_cooler")} />
-      </Region>
-
-      {/* CPU socket, beneath the cooler */}
-      <Region code="cpu" filled={is("cpu")} active={on("cpu")} onHover={onHover} onSelect={onSelect}>
-        <Box x={86} y={134} w={62} h={58} rx={4} cls={r("cpu")} />
-        <Caption x={117} y={168}>CPU</Caption>
-        <Tick x={142} y={140} show={is("cpu")} />
-      </Region>
-
-      {/* Memory — four slots to the right of the socket */}
-      <Region code="memory" filled={is("memory")} active={on("memory")} onHover={onHover} onSelect={onSelect}>
-        {[0, 1, 2, 3].map((i) => (
-          <Box
-            key={i}
-            x={176 + i * 15}
-            y={80}
-            w={9}
-            h={112}
-            rx={2}
-            cls={r("memory")}
-            depth={4}
-          />
-        ))}
-        <Caption x={205} y={208}>RAM</Caption>
-        <Tick x={244} y={88} show={is("memory")} />
-      </Region>
-
-      {/* Storage — M.2 on the board */}
-      <Region code="storage" filled={is("storage")} active={on("storage")} onHover={onHover} onSelect={onSelect}>
-        <Box x={74} y={214} w={150} h={18} rx={3} cls={r("storage")} />
-        <Caption x={149} y={250}>Storage</Caption>
-        <Tick x={216} y={216} show={is("storage")} />
-      </Region>
-
-      {/* Graphics card — hangs off the board's lower slots and out to the right */}
-      <Region code="gpu" filled={is("gpu")} active={on("gpu")} onHover={onHover} onSelect={onSelect}>
-        <Box x={52} y={300} w={300} h={56} rx={5} cls={r("gpu")} />
-        <circle cx="140" cy="328" r="18" className={r("gpu")} />
-        <circle cx="196" cy="328" r="18" className={r("gpu")} />
-        <Caption x={280} y={332}>Graphics card</Caption>
-        <Tick x={340} y={308} show={is("gpu")} />
-      </Region>
-
-      {/* Power supply — shrouded along the bottom */}
-      <Region code="psu" filled={is("psu")} active={on("psu")} onHover={onHover} onSelect={onSelect}>
-        <Box x={42} y={384} w={196} h={58} rx={5} cls={r("psu")} />
-        <circle cx="88" cy="413" r="18" className={r("psu")} />
-        <Caption x={170} y={418}>Power supply</Caption>
-        <Tick x={226} y={392} show={is("psu")} />
-      </Region>
-
-      {/* Case fans — front intake stack */}
-      <Region code="case_cooling" filled={is("case_cooling")} active={on("case_cooling")} onHover={onHover} onSelect={onSelect}>
-        {[110, 190, 270].map((cy) => (
-          <circle key={cy} cx="330" cy={cy} r="26" className={r("case_cooling")} />
-        ))}
-        <Caption x={330} y={72}>Fans</Caption>
-        <Tick x={352} y={84} show={is("case_cooling")} />
-      </Region>
-    </svg>
-  )
-}
-
-// ─── Laptop ───────────────────────────────────────────────────────────────
-
 // ─── Isometric helpers ────────────────────────────────────────────────────
 //
 // The laptop is drawn in true isometric rather than as extruded rectangles,
@@ -407,6 +313,94 @@ const Slab = ({
   </g>
 )
 
+/**
+ * A vertical face at a constant y — the plane the motherboard lives on.
+ *
+ * The laptop only needed horizontal panels; a tower is mostly vertical, and
+ * the board is the surface everything else mounts to.
+ */
+const FaceXZ = ({
+  x,
+  z,
+  w,
+  h,
+  y,
+  cls,
+}: {
+  x: number
+  z: number
+  w: number
+  h: number
+  y: number
+  cls: string
+}) => (
+  <polygon
+    points={poly([
+      [x, y, z],
+      [x + w, y, z],
+      [x + w, y, z + h],
+      [x, y, z + h],
+    ])}
+    className={cls}
+  />
+)
+
+/**
+ * A box with its three visible faces.
+ *
+ * In this projection the viewer sees the top and the two walls with the
+ * greater x and y, so the other three are never drawn. Used for parts that
+ * stand proud of the board — the cooler, the graphics card, the power
+ * supply — where a flat panel would not read as a component.
+ */
+const Box3 = ({
+  x,
+  y,
+  z,
+  w,
+  d,
+  h,
+  cls,
+}: {
+  x: number
+  y: number
+  z: number
+  w: number
+  d: number
+  h: number
+  cls: string
+}) => (
+  <g>
+    <polygon
+      points={poly([
+        [x, y, z + h],
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x, y + d, z + h],
+      ])}
+      className={cls}
+    />
+    <polygon
+      points={poly([
+        [x, y + d, z + h],
+        [x + w, y + d, z + h],
+        [x + w, y + d, z],
+        [x, y + d, z],
+      ])}
+      className={cls}
+    />
+    <polygon
+      points={poly([
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x + w, y + d, z],
+        [x + w, y, z],
+      ])}
+      className={cls}
+    />
+  </g>
+)
+
 /** A label that stays upright over an isometric point. */
 const IsoLabel = ({
   x,
@@ -433,6 +427,189 @@ const IsoLabel = ({
     >
       {children}
     </text>
+  )
+}
+
+const Desktop = ({ filled, active, onHover, onSelect }: Props) => {
+  const is = (c: string) => filled.has(c)
+  const on = (c: string) => active === c
+  const r = (c: string) => partClass(is(c), on(c))
+
+  // A tower with the near side panel off, which is how anyone who has opened
+  // a PC has seen one. Machine space: x across the case, y from the far wall
+  // toward the viewer, z up.
+  //
+  // The motherboard is a vertical plane against the far wall and everything
+  // else mounts to it and stands proud toward us — the cooler above the
+  // chip, memory in its slots, the card horizontal below, the supply in the
+  // basement. That arrangement is the point: it is what makes a case feel
+  // like somewhere parts go rather than a list with a border.
+  const W = 250 // across
+  const Dp = 210 // depth
+  const H = 430 // height
+  const BOARD_Y = 12 // the board sits just off the far wall
+
+  return (
+    <svg
+      viewBox="-205 -460 440 720"
+      className="w-full h-auto"
+      role="img"
+      aria-label="Desktop PC build diagram, side panel removed"
+    >
+      {/* ── Case shell. The +y wall is omitted: that is the panel taken off. */}
+      <Region code="case" filled={is("case")} active={on("case")} onHover={onHover} onSelect={onSelect}>
+        {/* far wall, the surface the board bolts to */}
+        <FaceXZ x={0} z={0} w={W} h={H} y={0} cls={r("case")} />
+        {/* right wall */}
+        <polygon
+          points={poly([
+            [W, 0, 0],
+            [W, Dp, 0],
+            [W, Dp, H],
+            [W, 0, H],
+          ])}
+          className={r("case")}
+        />
+        {/* floor and roof */}
+        <Panel x={0} y={0} w={W} d={Dp} cls={r("case")} />
+        <Panel x={0} y={0} w={W} d={Dp} z={H} cls={r("case")} />
+        {/* the open edge, drawn as a thin lip so the removed panel reads as
+            removed rather than as a drawing that forgot a side */}
+        <polyline
+          points={poly([
+            [0, Dp, 0],
+            [W, Dp, 0],
+            [W, Dp, H],
+            [0, Dp, H],
+            [0, Dp, 0],
+          ])}
+          className="fill-none stroke-grey-30 [stroke-width:0.8] [stroke-dasharray:3_3]"
+        />
+        <IsoLabel x={0} y={Dp} z={H + 24}>
+          Case
+        </IsoLabel>
+      </Region>
+
+      {/* ── Front intake fans, on the far-left face ─────────────────────── */}
+      <Region code="case_cooling" filled={is("case_cooling")} active={on("case_cooling")} onHover={onHover} onSelect={onSelect}>
+        {[110, 250].map((cz) => {
+          const [cx, cy] = iso(0, Dp / 2, cz)
+          return (
+            <g key={cz}>
+              <ellipse cx={cx} cy={cy} rx={13} ry={30} className={r("case_cooling")} />
+              <ellipse
+                cx={cx}
+                cy={cy}
+                rx={5}
+                ry={11}
+                className="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+              />
+            </g>
+          )
+        })}
+        <IsoLabel x={0} y={Dp / 2} z={330} dy={-6}>
+          Fans
+        </IsoLabel>
+      </Region>
+
+      {/* ── Motherboard ─────────────────────────────────────────────────── */}
+      <Region code="motherboard" filled={is("motherboard")} active={on("motherboard")} onHover={onHover} onSelect={onSelect}>
+        <FaceXZ x={34} z={96} w={W - 68} h={286} y={BOARD_Y} cls={r("motherboard")} />
+        <IsoLabel x={W - 52} y={BOARD_Y} z={118}>
+          Board
+        </IsoLabel>
+      </Region>
+
+      {/* ── Processor, then the cooler standing on it ───────────────────── */}
+      <Region code="cpu" filled={is("cpu")} active={on("cpu")} onHover={onHover} onSelect={onSelect}>
+        <Box3 x={58} y={BOARD_Y} z={272} w={62} d={20} h={14} cls={r("cpu")} />
+        <IsoLabel x={89} y={BOARD_Y + 20} z={266} dy={12}>
+          CPU
+        </IsoLabel>
+      </Region>
+
+      <Region code="cpu_cooler" filled={is("cpu_cooler")} active={on("cpu_cooler")} onHover={onHover} onSelect={onSelect}>
+        <Box3 x={52} y={BOARD_Y} z={288} w={74} d={64} h={92} cls={r("cpu_cooler")} />
+        {/* fan face on the near side of the tower */}
+        {(() => {
+          const [fx, fy] = iso(89, BOARD_Y + 64, 334)
+          return (
+            <>
+              <ellipse cx={fx} cy={fy} rx={16} ry={30} className={r("cpu_cooler")} />
+              <ellipse
+                cx={fx}
+                cy={fy}
+                rx={6}
+                ry={11}
+                className="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+              />
+            </>
+          )
+        })()}
+        <IsoLabel x={89} y={BOARD_Y + 64} z={388}>
+          Cooler
+        </IsoLabel>
+      </Region>
+
+      {/* ── Memory: sticks standing in their slots ──────────────────────── */}
+      <Region code="memory" filled={is("memory")} active={on("memory")} onHover={onHover} onSelect={onSelect}>
+        {[0, 1, 2, 3].map((i) => (
+          <Box3
+            key={i}
+            x={148 + i * 18}
+            y={BOARD_Y}
+            z={266}
+            w={9}
+            d={14}
+            h={104}
+            cls={r("memory")}
+          />
+        ))}
+        <IsoLabel x={183} y={BOARD_Y + 14} z={392}>
+          RAM
+        </IsoLabel>
+      </Region>
+
+      {/* ── Graphics card, horizontal in the top slot ───────────────────── */}
+      <Region code="gpu" filled={is("gpu")} active={on("gpu")} onHover={onHover} onSelect={onSelect}>
+        <Box3 x={44} y={BOARD_Y} z={196} w={W - 96} d={92} h={26} cls={r("gpu")} />
+        <IsoLabel x={120} y={BOARD_Y + 92} z={236}>
+          Graphics
+        </IsoLabel>
+      </Region>
+
+      {/* ── Storage, in a bay against the near-right ────────────────────── */}
+      <Region code="storage" filled={is("storage")} active={on("storage")} onHover={onHover} onSelect={onSelect}>
+        <Box3 x={168} y={126} z={98} w={62} d={72} h={22} cls={r("storage")} />
+        <Box3 x={168} y={126} z={128} w={62} d={72} h={22} cls={r("storage")} />
+        <IsoLabel x={199} y={198} z={162} dy={-8}>
+          Storage
+        </IsoLabel>
+      </Region>
+
+      {/* ── Power supply, in the basement ───────────────────────────────── */}
+      <Region code="psu" filled={is("psu")} active={on("psu")} onHover={onHover} onSelect={onSelect}>
+        <Box3 x={24} y={BOARD_Y} z={14} w={128} d={104} h={68} cls={r("psu")} />
+        {(() => {
+          const [px, py] = iso(88, BOARD_Y + 104, 48)
+          return (
+            <>
+              <ellipse cx={px} cy={py} rx={17} ry={30} className={r("psu")} />
+              <ellipse
+                cx={px}
+                cy={py}
+                rx={6}
+                ry={11}
+                className="fill-transparent stroke-grey-30 [stroke-width:0.7]"
+              />
+            </>
+          )
+        })()}
+        <IsoLabel x={70} y={BOARD_Y + 104} z={94} dy={14}>
+          Power
+        </IsoLabel>
+      </Region>
+    </svg>
   )
 }
 
