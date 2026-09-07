@@ -4,6 +4,25 @@ import { Radio, RadioGroup } from "@headlessui/react"
 import { setShippingMethod } from "@lib/data/cart"
 import { calculatePriceForShippingOption } from "@lib/data/fulfillment"
 import { convertToLocale } from "@lib/util/money"
+
+// A shipping option that costs nothing should not print a price.
+//
+// "Home Delivery (You will be contacted)" is priced at zero because the cost
+// is agreed afterwards, not because delivery is free — and "₦0.00" beside it
+// says the opposite. Pickup is genuinely free, where the figure is merely
+// noise next to a name that already explains itself.
+//
+// Keyed on the amount rather than the option's name so it keeps working when
+// someone renames one.
+const shippingPrice = (
+  amount: number | null | undefined,
+  currency_code: string | undefined
+): string | null => {
+  if (!amount) {
+    return null
+  }
+  return convertToLocale({ amount, currency_code: currency_code ?? "" })
+}
 import { CheckCircleSolid, Loader } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import { Button, clx, Heading, Text } from "@medusajs/ui"
@@ -272,20 +291,15 @@ const Shipping: React.FC<ShippingProps> = ({
                         </div>
                         <span className="justify-self-end text-ui-fg-base">
                           {option.price_type === "flat" ? (
-                            convertToLocale({
-                              amount: option.amount!,
-                              currency_code: cart?.currency_code,
-                            })
+                            shippingPrice(option.amount, cart?.currency_code)
                           ) : calculatedPricesMap[option.id] ? (
-                            convertToLocale({
-                              amount: calculatedPricesMap[option.id],
-                              currency_code: cart?.currency_code,
-                            })
+                            shippingPrice(
+                              calculatedPricesMap[option.id],
+                              cart?.currency_code
+                            )
                           ) : isLoadingPrices ? (
                             <Loader />
-                          ) : (
-                            "-"
-                          )}
+                          ) : null}
                         </span>
                       </Radio>
                     )
@@ -349,10 +363,7 @@ const Shipping: React.FC<ShippingProps> = ({
                             </div>
                           </div>
                           <span className="justify-self-end text-ui-fg-base">
-                            {convertToLocale({
-                              amount: option.amount!,
-                              currency_code: cart?.currency_code,
-                            })}
+                            {shippingPrice(option.amount, cart?.currency_code)}
                           </span>
                         </Radio>
                       )
@@ -389,11 +400,16 @@ const Shipping: React.FC<ShippingProps> = ({
                   Method
                 </Text>
                 <Text className="txt-medium text-ui-fg-subtle">
-                  {cart.shipping_methods!.at(-1)!.name}{" "}
-                  {convertToLocale({
-                    amount: cart.shipping_methods!.at(-1)!.amount!,
-                    currency_code: cart?.currency_code,
-                  })}
+                  {cart.shipping_methods!.at(-1)!.name}
+                  {shippingPrice(
+                    cart.shipping_methods!.at(-1)!.amount,
+                    cart?.currency_code
+                  )
+                    ? ` ${shippingPrice(
+                        cart.shipping_methods!.at(-1)!.amount,
+                        cart?.currency_code
+                      )}`
+                    : ""}
                 </Text>
               </div>
             )}
