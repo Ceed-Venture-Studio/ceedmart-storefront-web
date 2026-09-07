@@ -116,7 +116,7 @@ const partClass = (filled: boolean, active: boolean) =>
     // part looked like a torn edge rather than an empty slot.
     filled
       ? "fill-ceedmart-navy/10 stroke-ceedmart-navy [stroke-width:1.25]"
-      : "fill-transparent stroke-grey-40 [stroke-width:0.9] [stroke-dasharray:3_3]",
+      : "fill-transparent stroke-grey-50 [stroke-width:1.4] [stroke-dasharray:4_3]",
     active && "stroke-ceedmart-blue [stroke-width:1.75]"
   )
 
@@ -453,6 +453,10 @@ const Desktop = ({ filled, active, onHover, onSelect }: Props) => {
     <svg
       viewBox="-205 -460 440 720"
       className="w-full h-auto"
+      // Capped against the viewport so the first few dropdowns are on screen
+      // with the diagram, rather than below a full-height tower.
+      style={{ maxHeight: "min(46vh, 430px)" }}
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Desktop PC build diagram, side panel removed"
     >
@@ -631,6 +635,8 @@ const Laptop = ({ filled, active, onHover, onSelect }: Props) => {
     <svg
       viewBox="-330 -268 600 640"
       className="w-full h-auto"
+      style={{ maxHeight: "min(40vh, 380px)" }}
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Laptop build diagram, bottom cover removed"
     >

@@ -63,6 +63,11 @@ const sessionToken = () => {
 
 const Configurator = ({ categories, buildType, countryCode }: Props) => {
   const [picks, setPicks] = useState<Record<string, { optionId: string; quantity: number }>>({})
+  // Plenty of machines have no separate graphics card, and saying so is
+  // faster than scrolling a list to find "Integrated graphics". Ticking it
+  // clears both graphics slots and puts them out of the way, so the two
+  // cannot end up disagreeing — a card chosen with graphics switched off.
+  const [noGpu, setNoGpu] = useState(false)
   const [acknowledged, setAcknowledged] = useState<string[]>([])
   const [validation, setValidation] = useState<Validation | null>(null)
   const [checking, setChecking] = useState(false)
@@ -125,6 +130,17 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
       }),
     }))
   }, [categories, selectedBrand])
+
+  useEffect(() => {
+    if (!noGpu) return
+    setPicks((current) => {
+      if (!current.gpu && !current.gpu_ram) return current
+      const next = { ...current }
+      delete next.gpu
+      delete next.gpu_ram
+      return next
+    })
+  }, [noGpu])
 
   // Changing brand can hide something already chosen — pick an Intel chip,
   // then switch to Apple, and the selection survives out of sight, blocking
@@ -275,7 +291,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
         onMouseEnter={() => setActiveSlot(category.code)}
         onMouseLeave={() => setActiveSlot(null)}
         className={clx(
-          "flex flex-col gap-1.5 rounded-lg border px-3 py-2.5 transition-colors",
+          "flex flex-col gap-1 rounded-lg border px-3 py-2.5 small:py-1.5 transition-colors",
           isBlocked
             ? "border-ui-border-error bg-ui-bg-subtle"
             : activeSlot === category.code
@@ -291,6 +307,18 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
             {LABELS[category.code] ?? category.label}
             {category.is_required && <span className="text-ui-fg-error"> *</span>}
           </label>
+          {category.code === "gpu" && (
+            <label className="flex items-center gap-1.5 txt-small text-ui-fg-subtle cursor-pointer">
+              <input
+                type="checkbox"
+                checked={noGpu}
+                onChange={(e) => setNoGpu(e.target.checked)}
+                data-testid="no-gpu-checkbox"
+                className="cursor-pointer"
+              />
+              No graphics card
+            </label>
+          )}
           {/* Zero is not a price. Many parts now carry none — an Apple chip
               is priced with the machine, a screen size costs nothing on its
               own — and "₦0" beside them reads as free rather than as
@@ -314,7 +342,8 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           onFocus={() => setActiveSlot(category.code)}
           onBlur={() => setActiveSlot(null)}
           onChange={(e) => choose(category.code, e.target.value)}
-          className="w-full rounded-md border border-ui-border-base bg-ui-bg-field px-3 py-2.5 small:py-2 text-base small:text-sm text-ui-fg-base focus:outline-none focus:border-ceedmart-navy"
+          disabled={noGpu && (category.code === "gpu" || category.code === "gpu_ram")}
+          className="w-full rounded-md border border-ui-border-base bg-ui-bg-field px-3 py-2.5 small:py-1.5 text-base small:text-sm text-ui-fg-base focus:outline-none focus:border-ceedmart-navy disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <option value="">
             {category.is_required ? "Choose one…" : "None"}

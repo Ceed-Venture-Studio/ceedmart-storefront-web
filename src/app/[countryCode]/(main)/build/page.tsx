@@ -42,15 +42,15 @@ export default async function BuildPage(props: Props) {
   const catalog = configuratorOn ? await getBuildCatalog(buildType) : null
 
   return (
-    <div className="content-container py-8 small:py-16">
+    <div className="content-container py-5 small:py-8">
       {/* Full width: the configurator needs it for its two-column layout,
           and the assisted form centres itself within it. */}
-      <div className="flex flex-col gap-6 small:gap-8">
-        <header className="flex flex-col items-center text-center gap-3">
-          <h1 className="text-2xl xsmall:text-3xl small:text-4xl font-bold text-ceedmart-navy">
+      <div className="flex flex-col gap-4 small:gap-6">
+        <header className="flex flex-col items-center text-center gap-2">
+          <h1 className="text-xl xsmall:text-2xl small:text-3xl font-bold text-ceedmart-navy">
             Customise your {buildType === "laptop" ? "laptop" : "PC"}
           </h1>
-          <p className="text-ui-fg-subtle text-base small:text-lg max-w-2xl">
+          <p className="text-ui-fg-subtle text-sm small:text-base max-w-2xl">
             Choose every part yourself. We check they fit and work together as
             you go, and a specialist confirms availability and the final price
             before you pay anything.
