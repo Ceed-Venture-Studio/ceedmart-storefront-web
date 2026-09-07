@@ -30,16 +30,26 @@ const ALL_OFF: FeatureFlags = {
   auction: false,
 }
 
+// Long enough that flags cost nothing on a busy page, short enough that
+// switching one off actually takes effect.
+//
+// This was force-cache with no revalidate, which Next persists to disk —
+// across restarts, and indefinitely. A backend flag change never reached the
+// storefront: enabling a feature left its page 404ing, and, far worse,
+// turning one OFF in an incident would have done nothing at all. A kill
+// switch that cannot be pulled is not a kill switch.
+const FLAG_TTL_SECONDS = 30
+
 export const getFeatureFlags = async (): Promise<FeatureFlags> => {
   const next = {
     ...(await getCacheOptions("feature-flags")),
+    revalidate: FLAG_TTL_SECONDS,
   }
 
   return await sdk.client
     .fetch<{ flags: FeatureFlags }>("/store/feature-flags", {
       method: "GET",
       next,
-      cache: "force-cache",
     })
     .then((res) => ({ ...ALL_OFF, ...(res.flags ?? {}) }))
     .catch(() => ALL_OFF)
