@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 import { getBuildCatalog } from "@lib/data/build-catalog"
 import { isFeatureEnabled } from "@lib/data/feature-flags"
@@ -47,15 +48,40 @@ export default async function BuildPage(props: Props) {
       <div className="flex flex-col gap-6 small:gap-8">
         <header className="flex flex-col items-center text-center gap-3">
           <h1 className="text-2xl xsmall:text-3xl small:text-4xl font-bold text-ceedmart-navy">
-            Build your device
+            Customise your {buildType === "laptop" ? "laptop" : "PC"}
           </h1>
           <p className="text-ui-fg-subtle text-base small:text-lg max-w-2xl">
-            A custom PC or laptop, specced for what you actually do with it —
-            not whatever the shop had in stock.
+            Choose every part yourself. We check they fit and work together as
+            you go, and a specialist confirms availability and the final price
+            before you pay anything.
           </p>
-          <p className="txt-small text-ui-fg-muted">
-            You don&apos;t need to know what a chipset is. That&apos;s our job.
-          </p>
+
+          {/* The choice used to live in a URL parameter nobody could see.
+              It changes which parts are offered, so it belongs on the page. */}
+          <div
+            className="inline-flex rounded-lg border border-grey-20 p-1 bg-white"
+            role="group"
+            aria-label="What are you building?"
+          >
+            {[
+              { value: "desktop", label: "PC", href: "/build" },
+              { value: "laptop", label: "Laptop", href: "/build?type=laptop" },
+            ].map((option) => (
+              <LocalizedClientLink
+                key={option.value}
+                href={option.href}
+                aria-current={buildType === option.value ? "page" : undefined}
+                data-testid={`build-type-${option.value}`}
+                className={
+                  buildType === option.value
+                    ? "px-4 py-1.5 rounded-md bg-ceedmart-navy text-white txt-small-plus"
+                    : "px-4 py-1.5 rounded-md text-ui-fg-subtle hover:text-ceedmart-navy txt-small-plus"
+                }
+              >
+                {option.label}
+              </LocalizedClientLink>
+            ))}
+          </div>
         </header>
 
         <BuildEntry
