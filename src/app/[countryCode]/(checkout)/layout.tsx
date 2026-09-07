@@ -9,7 +9,7 @@ export default function CheckoutLayout({
 }) {
   return (
     <div className="w-full bg-white relative small:min-h-screen">
-      <div className="h-16 bg-white border-b ">
+      <div className="h-12 small:h-16 bg-white border-b">
         <nav className="flex h-full items-center content-container justify-between">
           <LocalizedClientLink
             href="/cart"
@@ -34,9 +34,9 @@ export default function CheckoutLayout({
               alt="CeedMart"
               width={32}
               height={32}
-              className="h-8 w-8"
+              className="h-7 w-7 small:h-8 small:w-8"
             />
-            <span className="text-ceedmart-navy font-bold text-lg tracking-tight hidden small:block">
+            <span className="text-ceedmart-navy font-bold text-base small:text-lg tracking-tight hidden small:block">
               Ceedmart
             </span>
           </LocalizedClientLink>
