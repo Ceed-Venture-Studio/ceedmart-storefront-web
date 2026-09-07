@@ -34,8 +34,15 @@ export const paymentInfoMap: Record<
     title: "Manual Payment",
     icon: <CreditCard />,
   },
+  // Named for the gateway the customer actually transacts with, not the
+  // platform we reach it through — "Pulse Pay by Ceed" meant nothing to a
+  // shopper and named two systems they have no relationship with.
+  //
+  // Kept in step with PULSE_PAYMENT_CHANNEL on the backend (paystack today).
+  // Change one and change the other, or checkout will name a gateway the
+  // customer is not sent to.
   "pp_pulse-pay_pulse-pay": {
-    title: "Pulse Pay by Ceed",
+    title: "Paystack",
     icon: <CreditCard />,
   },
   // Add more payment providers here

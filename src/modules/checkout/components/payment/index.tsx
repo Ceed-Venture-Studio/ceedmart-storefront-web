@@ -221,7 +221,7 @@ const Payment = ({
             {!activeSession && isStripeLike(selectedPaymentMethod)
               ? "Enter card details"
               : isPulsePay(selectedPaymentMethod)
-                ? "Pay with Pulse Pay"
+                ? "Pay with Paystack"
                 : "Continue to review"}
           </Button>
         </div>
