@@ -7,6 +7,7 @@ import { Button } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
 import React, { useState } from "react"
 import ErrorMessage from "../error-message"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
@@ -205,13 +206,37 @@ const PulsePayButton = ({
 }) => {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [needsNewPayment, setNeedsNewPayment] = useState(false)
 
   const handlePayment = async () => {
     setSubmitting(true)
+    setErrorMessage(null)
+    setNeedsNewPayment(false)
 
     await placeOrder()
       .catch((err) => {
-        setErrorMessage(err.message)
+        // A payment session can be dead by the time the customer confirms:
+        // Pulse marks a payment Cancelled as soon as anything reads it before
+        // the customer has finished paying, and a read happens on the way
+        // here. From the customer's side they clicked Pay, saw Paystack, and
+        // are now being told no — with no way forward, because this page has
+        // no controls other than this button.
+        //
+        // Starting a fresh payment is always allowed and always works, so
+        // offer that rather than leaving them stuck. We cannot stop Pulse
+        // cancelling the session; we can stop it ending the sale.
+        const message = String(err?.message ?? err)
+        const sessionIsDead =
+          /cancel|not authorized|authoriz|payment session|pending/i.test(message)
+
+        if (sessionIsDead) {
+          setNeedsNewPayment(true)
+          setErrorMessage(
+            "That payment didn't complete. Nothing has been charged — start a new payment to finish your order."
+          )
+        } else {
+          setErrorMessage(message)
+        }
       })
       .finally(() => {
         setSubmitting(false)
@@ -230,6 +255,17 @@ const PulsePayButton = ({
       >
         Confirm Order
       </Button>
+
+      {needsNewPayment && (
+        <LocalizedClientLink
+          href="/checkout?step=payment"
+          className="txt-medium-plus text-ceedmart-navy underline mt-3 inline-block"
+          data-testid="restart-payment-link"
+        >
+          Start a new payment
+        </LocalizedClientLink>
+      )}
+
       <ErrorMessage
         error={errorMessage}
         data-testid="pulse-payment-error-message"
