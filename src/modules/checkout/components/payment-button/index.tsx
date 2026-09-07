@@ -3,9 +3,10 @@
 import { isManual, isPulsePay, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
-import { Button } from "@medusajs/ui"
+import { Button, Text } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import ErrorMessage from "../error-message"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -207,6 +208,25 @@ const PulsePayButton = ({
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [needsNewPayment, setNeedsNewPayment] = useState(false)
+  const searchParams = useSearchParams()
+
+  // Captured on the FIRST render, deliberately.
+  //
+  // Paystack returns with session_id/reference/trxref on the URL, and an
+  // effect elsewhere in checkout strips session_id as soon as it runs. Both
+  // effects fire after mount, so reading these later is a race we would
+  // sometimes lose. A useState initialiser runs during render, before any
+  // effect, and keeps the answer.
+  const [returnedFromGateway] = useState(
+    () =>
+      searchParams.has("session_id") ||
+      searchParams.has("reference") ||
+      searchParams.has("trxref")
+  )
+
+  // Auto-completion must happen at most once. Without this, a failed attempt
+  // that re-renders would try again, and again.
+  const attempted = useRef(false)
 
   const handlePayment = async () => {
     setSubmitting(true)
@@ -243,17 +263,47 @@ const PulsePayButton = ({
       })
   }
 
+  // Place the order the moment the customer returns from the gateway.
+  //
+  // They have already paid. Asking them to press one more button is a step
+  // at which orders are lost — a closed tab, a flat battery, a customer who
+  // reasonably believes paying was the last thing required. The money is
+  // taken either way, so the only question is whether we have an order to
+  // match it.
+  //
+  // Not when notReady: the cart is missing something and completing would
+  // fail anyway, so leave the button and let them see what is wrong.
+  useEffect(() => {
+    if (!returnedFromGateway || attempted.current || notReady) {
+      return
+    }
+    attempted.current = true
+    handlePayment()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returnedFromGateway, notReady])
+
+  const autoCompleting = returnedFromGateway && submitting
+
   return (
     <>
+      {autoCompleting && (
+        <Text
+          className="txt-medium text-ui-fg-subtle mb-3"
+          data-testid="auto-completing-notice"
+        >
+          Payment received — completing your order…
+        </Text>
+      )}
+
       <Button
-        disabled={notReady}
+        disabled={notReady || submitting}
         isLoading={submitting}
         onClick={handlePayment}
         size="large"
         className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
         data-testid={dataTestId}
       >
-        Confirm Order
+        {autoCompleting ? "Completing order" : "Confirm Order"}
       </Button>
 
       {needsNewPayment && (
