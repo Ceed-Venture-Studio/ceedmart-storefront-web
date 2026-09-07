@@ -75,26 +75,28 @@ const PreorderFilters = ({ facets, count, total }: Props) => {
     : null
 
   return (
-    <div className="flex flex-col gap-4 mb-8">
-      <div className="flex flex-col small:flex-row gap-3">
-        <div className="relative flex-1">
-          <input
-            type="search"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="Search pre-orders — try a brand, model or condition"
-            aria-label="Search pre-orders"
-            data-testid="preorder-search"
-            className="w-full h-11 pl-4 pr-4 rounded-md border border-grey-20 bg-white text-sm focus:outline-none focus:border-ceedmart-navy transition-colors"
-          />
-        </div>
+    // One wrapping row. On a phone the search takes the full width and the
+    // selects wrap beneath it, which is the layout that already worked; from
+    // `small` everything sits on a single line and the search is capped so it
+    // stops crowding out the filters it sits beside.
+    <div className="mb-8">
+      <div className="flex flex-wrap items-center gap-2 small:gap-3">
+        <input
+          type="search"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Search pre-orders"
+          aria-label="Search pre-orders"
+          data-testid="preorder-search"
+          className="w-full small:w-64 medium:w-72 h-11 small:h-9 px-4 rounded-md border border-grey-20 bg-white text-sm focus:outline-none focus:border-ceedmart-navy transition-colors"
+        />
 
         <select
           value={get("sort")}
           onChange={(e) => apply({ sort: e.target.value || null })}
           aria-label="Sort pre-orders"
           data-testid="preorder-sort"
-          className="h-11 rounded-md border border-grey-20 bg-white px-3 text-sm"
+          className="h-9 rounded-md border border-grey-20 bg-white px-3 text-sm"
         >
           {SORTS.map((s) => (
             <option key={s.value} value={s.value}>
@@ -102,9 +104,6 @@ const PreorderFilters = ({ facets, count, total }: Props) => {
             </option>
           ))}
         </select>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
         {/* Only rendered when there is more than one value to choose between.
             A filter with a single option is not a choice, it is furniture. */}
         {facets.conditions.length > 1 && (
@@ -189,7 +188,7 @@ const PreorderFilters = ({ facets, count, total }: Props) => {
         )}
 
         <span
-          className="text-sm text-ui-fg-subtle ml-auto"
+          className="text-sm text-ui-fg-subtle w-full small:w-auto small:ml-auto"
           aria-live="polite"
           data-testid="preorder-result-count"
         >
