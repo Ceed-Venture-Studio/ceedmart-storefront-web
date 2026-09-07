@@ -58,8 +58,14 @@ export default async function PreorderPage(props: Props) {
         </p>
       </header>
 
-      {/* The three facts that decide whether someone pre-orders at all. */}
-      <div className="grid grid-cols-1 xsmall:grid-cols-3 gap-3 small:gap-4 mb-8 small:mb-12">
+      {/* The three facts that decide whether someone pre-orders at all.
+          Carried on the brand navy so the reassurances read as CeedMart's
+          promise rather than as three more boxes on a white page — a
+          customer being asked to pay before an item exists is deciding
+          whether to trust us, and this is where that case is made.
+          Gold on navy for the headings: the two logo colours furthest apart,
+          which is what makes each claim readable at a glance. */}
+      <div className="grid grid-cols-1 xsmall:grid-cols-3 gap-px bg-ceedmart-navy-light rounded-lg overflow-hidden mb-8 small:mb-12">
         {[
           [
             "One price, locked",
@@ -76,10 +82,12 @@ export default async function PreorderPage(props: Props) {
         ].map(([title, body]) => (
           <div
             key={title}
-            className="border border-grey-20 rounded-lg p-3 small:p-4 flex flex-col gap-1"
+            className="bg-ceedmart-navy p-4 small:p-5 flex flex-col gap-1"
           >
-            <span className="txt-medium-plus text-ui-fg-base">{title}</span>
-            <span className="txt-small text-ui-fg-subtle">{body}</span>
+            <span className="txt-medium-plus text-ceedmart-gold">{title}</span>
+            {/* Not white/70: body text a customer is meant to read and
+                believe should be legible, not decorative. */}
+            <span className="txt-small text-white/90">{body}</span>
           </div>
         ))}
       </div>
