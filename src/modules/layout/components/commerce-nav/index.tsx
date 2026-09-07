@@ -1,5 +1,5 @@
 import { getFeatureFlags } from "@lib/data/feature-flags"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import CommerceNavLink from "./nav-link"
 
 // Commerce-type destinations in the primary nav (BRD §9.1).
 //
@@ -52,17 +52,11 @@ const CommerceNav = async () => {
         <ul className="flex items-stretch gap-x-6 overflow-x-auto">
           {live.map((dest) => (
             <li key={dest.href} className="shrink-0">
-              <LocalizedClientLink
+              <CommerceNavLink
                 href={dest.href}
-                className="flex flex-col py-2 border-b-2 border-transparent hover:border-ceedmart-navy transition-colors"
-              >
-                <span className="txt-small-plus text-ceedmart-navy">
-                  {dest.label}
-                </span>
-                <span className="txt-small text-ui-fg-muted hidden small:block">
-                  {dest.blurb}
-                </span>
-              </LocalizedClientLink>
+                label={dest.label}
+                blurb={dest.blurb}
+              />
             </li>
           ))}
         </ul>
