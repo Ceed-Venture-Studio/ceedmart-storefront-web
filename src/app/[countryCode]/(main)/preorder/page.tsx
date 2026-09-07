@@ -59,35 +59,48 @@ export default async function PreorderPage(props: Props) {
       </header>
 
       {/* The three facts that decide whether someone pre-orders at all.
-          Carried on the brand navy so the reassurances read as CeedMart's
-          promise rather than as three more boxes on a white page — a
-          customer being asked to pay before an item exists is deciding
-          whether to trust us, and this is where that case is made.
-          Gold on navy for the headings: the two logo colours furthest apart,
-          which is what makes each claim readable at a glance. */}
-      <div className="grid grid-cols-1 xsmall:grid-cols-3 gap-px bg-ceedmart-navy-light rounded-lg overflow-hidden mb-8 small:mb-12">
+          Independent gradient cards, following the store cards on the home
+          page — same rounded-2xl, same soft shadow, same lift on hover — so
+          the promise strip reads as part of the shop rather than as a
+          notice bolted onto it.
+          Three different colours because these are three separate promises;
+          one shared panel made them look like one paragraph in a box.
+          Gold sits on navy and navy sits on gold: yellow is too light to
+          carry white text, which is the same swap the CCTV card makes. */}
+      <div className="grid grid-cols-1 xsmall:grid-cols-3 gap-3 small:gap-4 mb-8 small:mb-12">
         {[
-          [
-            "One price, locked",
-            "Import duty, clearing and delivery within Nigeria are already in the price you see.",
-          ],
-          [
-            "A date, not a maybe",
-            "Every item shows how long it takes, broken down into sourcing, transit and customs.",
-          ],
-          [
-            "Cancel before we buy",
-            "Free cancellation any time before we purchase from our supplier.",
-          ],
-        ].map(([title, body]) => (
+          {
+            title: "One price, locked",
+            body: "Import duty, clearing and delivery within Nigeria are already in the price you see.",
+            gradient: "from-ceedmart-navy via-ceedmart-navy-light to-ceedmart-navy-light",
+            titleColor: "text-ceedmart-gold",
+            bodyColor: "text-white/90",
+          },
+          {
+            title: "A date, not a maybe",
+            body: "Every item shows how long it takes, broken down into sourcing, transit and customs.",
+            gradient: "from-ceedmart-navy-light via-ceedmart-blue to-ceedmart-blue",
+            titleColor: "text-white",
+            bodyColor: "text-white/90",
+          },
+          {
+            title: "Cancel before we buy",
+            body: "Free cancellation any time before we purchase from our supplier.",
+            gradient: "from-yellow-500 via-ceedmart-gold to-amber-300",
+            titleColor: "text-ceedmart-navy",
+            bodyColor: "text-ceedmart-navy/80",
+          },
+        ].map((card) => (
           <div
-            key={title}
-            className="bg-ceedmart-navy p-4 small:p-5 flex flex-col gap-1"
+            key={card.title}
+            className={`rounded-2xl bg-gradient-to-br ${card.gradient} p-4 small:p-5 flex flex-col gap-1 shadow-md hover:shadow-xl transition-shadow duration-300`}
           >
-            <span className="txt-medium-plus text-ceedmart-gold">{title}</span>
-            {/* Not white/70: body text a customer is meant to read and
-                believe should be legible, not decorative. */}
-            <span className="txt-small text-white/90">{body}</span>
+            <span className={`txt-medium-plus ${card.titleColor}`}>
+              {card.title}
+            </span>
+            {/* Body copy a customer is meant to read and believe, so it keeps
+                real contrast rather than fading to decoration. */}
+            <span className={`txt-small ${card.bodyColor}`}>{card.body}</span>
           </div>
         ))}
       </div>
