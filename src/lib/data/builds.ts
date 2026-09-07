@@ -43,8 +43,6 @@ export type BuildRequestInput = {
   delivery_state?: string
   build_type: "desktop" | "laptop"
   intended_use: string
-  budget_min?: number
-  budget_max?: number
   preferred_brands?: string[]
   required_software?: string[]
   performance_notes?: string

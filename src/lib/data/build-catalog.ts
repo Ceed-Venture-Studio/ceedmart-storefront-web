@@ -9,8 +9,6 @@ export type ComponentOption = {
   label: string
   brand: string | null
   variant_id: string | null
-  indicative_price: number | null
-  currency_code: string
   attributes: Record<string, unknown>
   is_fixed: boolean
 }
@@ -40,8 +38,6 @@ export type Validation = {
   missing_labels: string[]
   unacknowledged: Finding[]
   can_submit: boolean
-  estimated_total: number
-  currency_code: string
 }
 
 export type Selection = {
@@ -58,8 +54,8 @@ export const getBuildCatalog = async (
     .fetch<{ categories: ComponentCategory[] }>("/store/builds/catalog", {
       method: "GET",
       query: { build_type: buildType, model_family: modelFamily },
-      // Catalogue prices and availability move; a stale option list would
-      // let someone configure a part we no longer sell.
+      // Catalogue availability moves; a stale option list would let
+      // someone configure a part we no longer sell.
       cache: "no-store",
     })
     .catch(() => null)

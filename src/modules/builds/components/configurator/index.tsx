@@ -43,9 +43,6 @@ type Props = {
   countryCode: string
 }
 
-const naira = (kobo: number | null | undefined) =>
-  kobo == null ? "—" : `₦${(Number(kobo) / 100).toLocaleString()}`
-
 const sessionToken = () => {
   if (typeof window === "undefined") return undefined
   const key = "ceedmart_build_session"
@@ -79,7 +76,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
   const [busy, setBusy] = useState(false)
 
   const slotRefs = useRef<Record<string, HTMLSelectElement | null>>({})
-  const estimateRef = useRef<HTMLDivElement | null>(null)
+  const summaryRef = useRef<HTMLDivElement | null>(null)
 
   const selections: Selection[] = useMemo(
     () =>
@@ -319,15 +316,6 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
               No graphics card
             </label>
           )}
-          {/* Zero is not a price. Many parts now carry none — an Apple chip
-              is priced with the machine, a screen size costs nothing on its
-              own — and "₦0" beside them reads as free rather than as
-              "quoted later". */}
-          {!!option?.indicative_price && (
-            <span className="txt-small tabular-nums text-ui-fg-subtle">
-              {naira(option.indicative_price * (chosen?.quantity ?? 1))}
-            </span>
-          )}
           {!chosen && isMissing && (
             <span className="txt-small text-ui-fg-error">Needed</span>
           )}
@@ -351,7 +339,6 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
           {category.options.map((o) => (
             <option key={o.id} value={o.id} disabled={o.is_fixed}>
               {o.label}
-              {o.indicative_price ? ` — ${naira(o.indicative_price)}` : ""}
               {o.is_fixed ? " (fixed on this model)" : ""}
             </option>
           ))}
@@ -431,7 +418,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
         </div>
 
         <div
-          ref={estimateRef}
+          ref={summaryRef}
           className="rounded-lg border border-ui-border-base p-4 flex flex-col gap-3 order-3 small:order-none"
         >
           <div className="flex items-baseline justify-between">
@@ -441,12 +428,10 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
             )}
           </div>
 
-          {/* No running total, deliberately.
-              The prices on these parts are indicative, most slots are now
-              optional, and a figure that moves as someone fills in a
-              dropdown reads as the price — then a specialist quotes
-              something else. Better to promise the quote than to show a
-              number we will not honour. */}
+          {/* No figures anywhere in this flow, deliberately. What a build
+              costs depends on what the parts cost to source that week, so
+              any number here would be a guess the quote then has to argue
+              with. Promise the quote instead. */}
           <Text className="txt-small text-ui-fg-subtle">
             A specialist prices this once you send it, confirming every part
             is available before anything is charged.
@@ -549,10 +534,10 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
         </div>
       </aside>
 
-      {/* Mobile: the total and the next step follow you down the page. On a
-          phone the estimate card sits below fourteen dropdowns, and a
-          shopper adjusting parts should not have to scroll to see what it
-          costs. Hidden once the contact form is open — two competing
+      {/* Mobile: progress and the next step follow you down the page. On a
+          phone the summary card sits below fourteen dropdowns, and a shopper
+          adjusting parts should not have to scroll to find out whether they
+          can send it. Hidden once the contact form is open — two competing
           submit buttons is worse than none.
           
           Sits at bottom-[65px], not bottom-0: the storefront already has a
@@ -583,7 +568,7 @@ const Configurator = ({ categories, buildType, countryCode }: Props) => {
                 validation?.blocking[0]?.categories[0] ??
                 validation?.missing[0]
               if (target) focusSlot(target)
-              else estimateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+              else summaryRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
             }}
             disabled={busy}
           >

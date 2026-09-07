@@ -99,10 +99,10 @@ const Region = ({
       }
     }}
   >
-    <title>
-      {LABELS[code] ?? code}
-      {filled ? " — chosen" : " — not chosen yet"}
-    </title>
+    {/* One expression, not two. <title> is RCDATA, so the comment marker
+        React emits between adjacent children is parsed as literal text and
+        the tree fails to hydrate. */}
+    <title>{`${LABELS[code] ?? code}${filled ? " — chosen" : " — not chosen yet"}`}</title>
     {children}
   </g>
 )

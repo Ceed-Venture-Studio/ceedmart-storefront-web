@@ -9,13 +9,13 @@ import { submitBuildRequest } from "@lib/data/builds"
 //
 // The BRD's acceptance criterion is that "a customer can submit an assisted
 // request WITHOUT KNOWING COMPONENT TERMINOLOGY". So every field asks about
-// outcomes — what you'll do with it, what you can spend, what it must run —
-// and none asks for a socket, a chipset or a wattage. A specialist turns
-// this into a configuration; that is the whole point of the assisted path.
+// outcomes — what you'll do with it, what it must run — and none asks for a
+// socket, a chipset or a wattage. A specialist turns this into a
+// configuration; that is the whole point of the assisted path.
 //
-// Budget is a range rather than a figure. A customer who has not priced
-// components does not have a figure, and forcing one makes them guess low
-// and feel misled when the quote lands.
+// It does not ask for a budget. We cannot know what a build costs until the
+// parts are sourced, and inviting a figure first only anchors the customer
+// on a number the quote then has to argue with.
 
 const USE_CASES = [
   "Gaming",
@@ -39,14 +39,6 @@ const RequestForm = () => {
     setError(null)
 
     const form = new FormData(e.currentTarget)
-    const naira = (key: string) => {
-      const raw = form.get(key)?.toString().trim()
-      if (!raw) return undefined
-      const n = Number(raw.replace(/[^\d.]/g, ""))
-      // The form collects naira; everything server-side is kobo.
-      return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : undefined
-    }
-
     startTransition(async () => {
       try {
         const res = await submitBuildRequest({
@@ -56,8 +48,6 @@ const RequestForm = () => {
           delivery_state: form.get("state")?.toString().trim() || undefined,
           build_type: buildType,
           intended_use: useCase || form.get("use_other")?.toString().trim() || "",
-          budget_min: naira("budget_min"),
-          budget_max: naira("budget_max"),
           required_software: form
             .get("software")
             ?.toString()
@@ -166,17 +156,6 @@ const RequestForm = () => {
           placeholder="Or describe it in your own words"
           className="mt-1"
         />
-      </div>
-
-      <div className="grid grid-cols-1 small:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="budget_min">Budget from (₦)</Label>
-          <Input id="budget_min" name="budget_min" inputMode="numeric" placeholder="500,000" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="budget_max">Budget up to (₦)</Label>
-          <Input id="budget_max" name="budget_max" inputMode="numeric" placeholder="900,000" />
-        </div>
       </div>
 
       <div className="flex flex-col gap-2">
