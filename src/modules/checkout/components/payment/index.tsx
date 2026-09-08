@@ -56,24 +56,50 @@ const Payment = ({
   // Whether to name a gateway when creating the payment. With one
   // configured Pulse resolves it and we send nothing; it refuses to guess
   // between several, so a choice is only meaningful when there is one.
-  const pulseChannel =
-    pulseOptions && pulseOptions.length > 1 ? selectedChannel : undefined
+  // Always send what they chose. This used to be sent only when there was
+  // more than one option, on the theory that Pulse resolves a lone gateway
+  // itself — but the customer has now named one explicitly, and saying so
+  // does not depend on that behaviour holding.
+  const pulseChannel = selectedChannel
 
   // The gateway the customer is actually about to be sent to: the only one
   // configured, or the one they picked. Null until we know — and when it is
   // null the UI says "payment" rather than guessing a brand name. Naming the
   // wrong gateway is worse than naming none: the customer lands on a page
   // that does not match the button they pressed.
-  const activeOption =
-    pulseOptions?.length === 1
-      ? pulseOptions[0]
-      : pulseOptions?.find((o) => o.provider === selectedChannel)
+  const activeOption = pulseOptions?.find(
+    (o) => o.provider === selectedChannel
+  )
   const gatewayName = activeOption?.displayName || null
 
   const isOpen = searchParams.get("step") === "payment"
 
   const visiblePaymentMethods = (availablePaymentMethods ?? []).filter(
     (pm: any) => isPulsePay(pm.id)
+  )
+
+  // List the gateways themselves rather than a generic row that opens into
+  // them. "Card or bank transfer" was a step that asked the customer to
+  // agree to a category before it would tell them who was taking the money;
+  // the thing they are choosing IS Paystack or Monnify, so offer that.
+  //
+  // Falls back to the plain Medusa row whenever Pulse has not answered —
+  // offline, no pim_id, nothing configured — so checkout never renders an
+  // empty payment step.
+  const pulseMethodId = visiblePaymentMethods.find((pm: any) =>
+    isPulsePay(pm.id)
+  )?.id
+  const listGateways = Boolean(
+    pulseMethodId && pulseOptions && pulseOptions.length > 0
+  )
+
+  // Titles come from Pulse, so a gateway added on their dashboard appears
+  // here without a deploy and without a local name map to go stale.
+  const gatewayInfoMap = Object.fromEntries(
+    (pulseOptions ?? []).map((o) => [
+      o.provider,
+      { title: o.displayName, icon: <CreditCard /> },
+    ])
   )
 
   const setPaymentMethod = async (method: string) => {
@@ -207,22 +233,6 @@ const Payment = ({
     }
   }, [isOpen])
 
-  // Pick a gateway up front when there are several.
-  //
-  // Without this the radios render with none checked, the submit button
-  // stays enabled, and pressing it sends no channel — which Pulse rejects
-  // with "Payment channel is required" after the customer has already
-  // committed. A default that they can change beats an error they cannot
-  // predict. Live credentials win over test ones, so a shop mid-way through
-  // configuring a gateway does not silently default to the test one.
-  useEffect(() => {
-    if (!pulseOptions || pulseOptions.length < 2 || selectedChannel) {
-      return
-    }
-    const preferred = pulseOptions.find((o) => o.isLive) ?? pulseOptions[0]
-    setSelectedChannel(preferred.provider)
-  }, [pulseOptions, selectedChannel])
-
   // Clean up session_id from URL on return from payment provider
   useEffect(() => {
     setError(null)
@@ -264,6 +274,40 @@ const Payment = ({
         <div className={isOpen ? "block" : "hidden"}>
           {!paidByGiftcard && visiblePaymentMethods.length > 0 && (
             <>
+              {listGateways ? (
+                <RadioGroup
+                  value={selectedChannel ?? ""}
+                  onChange={(provider: string) => {
+                    setSelectedChannel(provider)
+                    // Picking a gateway also picks the Medusa provider it
+                    // belongs to, so the rest of the step — the submit
+                    // button's enabled state, the session it creates — works
+                    // unchanged.
+                    if (pulseMethodId) {
+                      setPaymentMethod(pulseMethodId)
+                    }
+                  }}
+                  data-testid="pulse-gateway-list"
+                >
+                  {pulseOptions!.map((option) => (
+                    <PaymentContainer
+                      key={option.provider}
+                      paymentInfoMap={gatewayInfoMap}
+                      paymentProviderId={option.provider}
+                      selectedPaymentOptionId={selectedChannel ?? null}
+                    >
+                      {/* A shop quietly on test credentials looks exactly
+                          like one taking real money. Say so on the row the
+                          customer is about to choose. */}
+                      {!option.isLive && (
+                        <Text className="txt-compact-xsmall text-ui-tag-orange-text">
+                          Test mode — no real payment will be taken.
+                        </Text>
+                      )}
+                    </PaymentContainer>
+                  ))}
+                </RadioGroup>
+              ) : (
               <RadioGroup
                 value={selectedPaymentMethod}
                 onChange={(value: string) => setPaymentMethod(value)}
@@ -289,6 +333,7 @@ const Payment = ({
                   </div>
                 ))}
               </RadioGroup>
+              )}
             </>
           )}
 
@@ -335,55 +380,6 @@ const Payment = ({
               account for itself: say where they went, and give them a way
               back if that tab was blocked or closed. Without this the page
               just sits there looking like the button did nothing. */}
-          {/* Named gateways, straight from Pulse. Shown only when there is
-              a decision to make — one option is not a choice, it is a label,
-              and Pulse resolves it for us. */}
-          {isPulsePay(selectedPaymentMethod) &&
-            pulseOptions &&
-            pulseOptions.length > 1 && (
-              <div className="mt-4" data-testid="pulse-channel-picker">
-                <Text className="txt-medium-plus text-ui-fg-base mb-2">
-                  Pay with
-                </Text>
-                <div className="flex flex-col gap-y-2">
-                  {pulseOptions.map((option) => (
-                    <label
-                      key={option.provider}
-                      className="flex items-center gap-x-2 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="pulse_channel"
-                        value={option.provider}
-                        checked={selectedChannel === option.provider}
-                        onChange={() => setSelectedChannel(option.provider)}
-                      />
-                      <span className="txt-medium">{option.displayName}</span>
-                      {!option.isLive && (
-                        <span className="txt-compact-xsmall rounded bg-ui-tag-orange-bg text-ui-tag-orange-text px-1.5 py-0.5">
-                          test mode
-                        </span>
-                      )}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {/* A shop quietly running on test credentials looks exactly like
-              one taking real money. Say so where the customer would notice. */}
-          {isPulsePay(selectedPaymentMethod) &&
-            pulseOptions?.length === 1 &&
-            !pulseOptions[0].isLive && (
-              <Text
-                className="txt-compact-small text-ui-tag-orange-text mt-3"
-                data-testid="pulse-test-mode-notice"
-              >
-                Test mode — {pulseOptions[0].displayName} is using test
-                credentials, so no real payment will be taken.
-              </Text>
-            )}
-
           {checkoutUrl && (
             <div
               className="mt-4 rounded-md border border-ui-border-base bg-ui-bg-subtle p-4"
