@@ -38,12 +38,20 @@ const BENEFITS = [
     ),
   },
   {
-    title: "Same-day delivery in PH",
-    body: "Order before cut-off in Port Harcourt.",
+    // Named the way the nav and the pre-order page name it, so someone who
+    // reads this and goes looking finds the same words rather than
+    // wondering whether it was a different thing.
+    title: "Pre-order from the US",
+    body: "Flown in for you, with duty already in the price.",
     icon: (
+      // A plane, not the clock this card used to carry: the clock only ever
+      // meant "same day".
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
-        <circle cx="12" cy="12" r="8.5" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3.5 2" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 2.5c.7 0 1.2.6 1.2 1.3v4.9l7.3 4.2v1.9l-7.3-2.1v4.2l2.1 1.5v1.6L12 19.2l-3.3.8v-1.6l2.1-1.5v-4.2L3.5 14.8v-1.9l7.3-4.2V3.8c0-.7.5-1.3 1.2-1.3z"
+        />
       </svg>
     ),
   },
