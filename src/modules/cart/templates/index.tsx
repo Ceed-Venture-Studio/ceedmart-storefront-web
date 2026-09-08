@@ -8,9 +8,14 @@ import { HttpTypes } from "@medusajs/types"
 const CartTemplate = ({
   cart,
   customer,
+  canPayOnline = true,
 }: {
   cart: HttpTypes.StoreCart | null
   customer: HttpTypes.StoreCustomer | null
+  /** False when no payment gateway is reachable — the summary then offers
+   *  WhatsApp as the way to complete the order rather than a checkout that
+   *  would dead-end at the payment step. */
+  canPayOnline?: boolean
 }) => {
   return (
     <div className="py-12">
@@ -31,7 +36,7 @@ const CartTemplate = ({
                 {cart && cart.region && (
                   <>
                     <div className="bg-white py-6">
-                      <Summary cart={cart as any} />
+                      <Summary cart={cart as any} canPayOnline={canPayOnline} />
                     </div>
                   </>
                 )}
