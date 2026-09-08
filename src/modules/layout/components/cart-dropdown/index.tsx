@@ -217,8 +217,12 @@ const CartDropdown = ({
                     </span>
                   </div>
                   <LocalizedClientLink href="/cart" passHref>
+                    {/* Medusa's default Button variant is near-black, which
+                        is the one dark surface left in a navy-and-gold
+                        header. Branded the way every other primary action on
+                        the site is. */}
                     <Button
-                      className="w-full"
+                      className="w-full bg-ceedmart-navy hover:bg-ceedmart-navy-light"
                       size="large"
                       data-testid="go-to-cart-button"
                     >
@@ -238,7 +242,12 @@ const CartDropdown = ({
                     <LocalizedClientLink href="/store">
                       <>
                         <span className="sr-only">Go to all products page</span>
-                        <Button onClick={close}>Browse wholesale</Button>
+                        <Button
+                          onClick={close}
+                          className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
+                        >
+                          Browse wholesale
+                        </Button>
                       </>
                     </LocalizedClientLink>
                   </div>
