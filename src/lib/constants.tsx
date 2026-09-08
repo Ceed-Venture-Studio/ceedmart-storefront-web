@@ -38,11 +38,14 @@ export const paymentInfoMap: Record<
   // platform we reach it through — "Pulse Pay by Ceed" meant nothing to a
   // shopper and named two systems they have no relationship with.
   //
-  // Kept in step with PULSE_PAYMENT_CHANNEL on the backend (paystack today).
-  // Change one and change the other, or checkout will name a gateway the
-  // customer is not sent to.
+  // Deliberately NOT a gateway name. This is one static row standing for
+  // however many gateways the tenant has configured on the Pulse dashboard
+  // — Paystack and Monnify today — and a fixed label here would name the
+  // wrong one as soon as there is more than one, including on the order
+  // confirmation of a payment that went somewhere else. The checkout step
+  // names the actual gateway, because it has asked Pulse which one.
   "pp_pulse-pay_pulse-pay": {
-    title: "Paystack",
+    title: "Card or bank transfer",
     icon: <CreditCard />,
   },
   // Add more payment providers here

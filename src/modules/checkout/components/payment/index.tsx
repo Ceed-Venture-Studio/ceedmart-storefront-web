@@ -59,6 +59,17 @@ const Payment = ({
   const pulseChannel =
     pulseOptions && pulseOptions.length > 1 ? selectedChannel : undefined
 
+  // The gateway the customer is actually about to be sent to: the only one
+  // configured, or the one they picked. Null until we know — and when it is
+  // null the UI says "payment" rather than guessing a brand name. Naming the
+  // wrong gateway is worse than naming none: the customer lands on a page
+  // that does not match the button they pressed.
+  const activeOption =
+    pulseOptions?.length === 1
+      ? pulseOptions[0]
+      : pulseOptions?.find((o) => o.provider === selectedChannel)
+  const gatewayName = activeOption?.displayName || null
+
   const isOpen = searchParams.get("step") === "payment"
 
   const visiblePaymentMethods = (availablePaymentMethods ?? []).filter(
@@ -196,6 +207,22 @@ const Payment = ({
     }
   }, [isOpen])
 
+  // Pick a gateway up front when there are several.
+  //
+  // Without this the radios render with none checked, the submit button
+  // stays enabled, and pressing it sends no channel — which Pulse rejects
+  // with "Payment channel is required" after the customer has already
+  // committed. A default that they can change beats an error they cannot
+  // predict. Live credentials win over test ones, so a shop mid-way through
+  // configuring a gateway does not silently default to the test one.
+  useEffect(() => {
+    if (!pulseOptions || pulseOptions.length < 2 || selectedChannel) {
+      return
+    }
+    const preferred = pulseOptions.find((o) => o.isLive) ?? pulseOptions[0]
+    setSelectedChannel(preferred.provider)
+  }, [pulseOptions, selectedChannel])
+
   // Clean up session_id from URL on return from payment provider
   useEffect(() => {
     setError(null)
@@ -298,7 +325,9 @@ const Payment = ({
             {!activeSession && isStripeLike(selectedPaymentMethod)
               ? "Enter card details"
               : isPulsePay(selectedPaymentMethod)
-                ? "Pay with Paystack"
+                ? gatewayName
+                  ? `Pay with ${gatewayName}`
+                  : "Continue to payment"
                 : "Continue to review"}
           </Button>
 
@@ -361,8 +390,9 @@ const Payment = ({
               data-testid="payment-tab-notice"
             >
               <Text className="txt-medium text-ui-fg-base">
-                Paystack is open in another tab. Finish paying there and
-                you&apos;ll be brought back to confirm your order.
+                {gatewayName ?? "The payment page"} is open in another tab.
+                Finish paying there and you&apos;ll be brought back to confirm
+                your order.
               </Text>
               <a
                 href={checkoutUrl}
@@ -371,7 +401,7 @@ const Payment = ({
                 className="txt-medium-plus text-ceedmart-navy underline mt-2 inline-block"
                 data-testid="reopen-payment-link"
               >
-                Tab didn&apos;t open? Continue to Paystack
+                Tab didn&apos;t open? Continue to {gatewayName ?? "payment"}
               </a>
             </div>
           )}
@@ -388,7 +418,10 @@ const Payment = ({
                   className="txt-medium text-ui-fg-subtle"
                   data-testid="payment-method-summary"
                 >
-                  {paymentInfoMap[activeSession?.provider_id]?.title ||
+                  {/* Prefer the gateway Pulse named over the static map,
+                      which cannot know which of several was used. */}
+                  {gatewayName ||
+                    paymentInfoMap[activeSession?.provider_id]?.title ||
                     activeSession?.provider_id}
                 </Text>
               </div>
