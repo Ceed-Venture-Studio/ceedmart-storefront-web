@@ -13,6 +13,7 @@ import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import NavAction from "@modules/layout/components/nav-action"
 import { ShoppingBag } from "@medusajs/icons"
 import Thumbnail from "@modules/products/components/thumbnail"
 import { usePathname } from "next/navigation"
@@ -82,18 +83,32 @@ const CartDropdown = ({
     >
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
-          <LocalizedClientLink
-            className="hover:text-ui-fg-base relative"
+          <NavAction
             href="/cart"
-            data-testid="nav-cart-link"
-          >
-            <ShoppingBag className="w-6 h-6" />
-            {totalItems > 0 && (
-              <span className="absolute -top-2 -right-2 text-ceedmart-navy text-[10px] font-bold w-4.5 h-4.5 flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </LocalizedClientLink>
+            testId="nav-cart-link"
+            icon={<ShoppingBag className="w-6 h-6" />}
+            // The badge already carries the count, so repeating it here
+            // would spend the only line of text on a number the customer can
+            // already see. The subtotal is the thing they actually want at a
+            // glance — items only, so it does not jump when a shipping
+            // method is picked.
+            hint={
+              totalItems > 0 && cartState
+                ? convertToLocale({
+                    amount: cartState.subtotal ?? 0,
+                    currency_code: cartState.currency_code,
+                    // en-NG for the naira sign and no kobo. convertToLocale
+                    // defaults to en-US, which renders "NGN 500,000.00" —
+                    // correct, but not what the rest of the site shows, and
+                    // far too wide for a nav label.
+                    locale: "en-NG",
+                    maximumFractionDigits: 0,
+                  })
+                : "Your items"
+            }
+            label="Cart"
+            badge={totalItems}
+          />
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}

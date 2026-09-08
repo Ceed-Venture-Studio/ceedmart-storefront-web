@@ -5,6 +5,7 @@ import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
 import { getStoreMenu } from "@lib/data/menu"
+import { retrieveCustomer } from "@lib/data/customer"
 import MegaMenu from "@modules/layout/components/mega-menu"
 import CommerceNav from "@modules/layout/components/commerce-nav"
 import { ShoppingBag, User } from "@medusajs/icons"
@@ -15,14 +16,23 @@ import CartButton from "@modules/layout/components/cart-button"
 import NavSearchSlot from "@modules/layout/components/nav-search-slot"
 import SideMenu from "@modules/layout/components/side-menu"
 import LocationChip from "@modules/layout/components/location-chip"
+import NavAction from "@modules/layout/components/nav-action"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale, menuSections] = await Promise.all([
-    listRegions().then((regions: StoreRegion[]) => regions),
-    listLocales(),
-    getLocale(),
-    getStoreMenu(),
-  ])
+  const [regions, locales, currentLocale, menuSections, customer] =
+    await Promise.all([
+      listRegions().then((regions: StoreRegion[]) => regions),
+      listLocales(),
+      getLocale(),
+      getStoreMenu(),
+      // Never let a signed-out session, or a customer lookup that fails,
+      // take down the whole header — the nav renders for everyone.
+      retrieveCustomer().catch(() => null),
+    ])
+
+  // First name only. "Hi, Victor" is a greeting; the full legal name in a
+  // nav is a database record.
+  const firstName = customer?.first_name?.trim().split(/\s+/)[0]
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
@@ -59,28 +69,30 @@ export default async function Nav() {
             </LocalizedClientLink>
           </div>
 
-          <div className="flex items-center gap-x-4 small:gap-x-6 h-full flex-1 basis-0 justify-end">
+          <div className="flex items-center gap-x-3 small:gap-x-4 h-full flex-1 basis-0 justify-end">
             <LocationChip />
             <NavSearchSlot />
-            <div className="hidden small:flex items-center gap-x-6 h-full">
-              <LocalizedClientLink
-                className="hover:text-ceedmart-navy"
+            <div className="hidden small:flex items-center h-full">
+              <NavAction
                 href="/account"
-                data-testid="nav-account-link"
-              >
-                <User className="w-7 h-7 small:w-8 small:h-8" />
-              </LocalizedClientLink>
+                testId="nav-account-link"
+                icon={<User className="w-6 h-6" />}
+                hint={firstName ? `Hi, ${firstName}` : "Hello, sign in"}
+                label="Account"
+              />
             </div>
             <div className="hidden small:block">
               <Suspense
                 fallback={
-                  <LocalizedClientLink
-                    className="hover:text-ceedmart-navy"
+                  // The same button with no count, so the cart does not
+                  // change shape when the real one arrives.
+                  <NavAction
                     href="/cart"
-                    data-testid="nav-cart-link"
-                  >
-                    <ShoppingBag className="w-7 h-7 small:w-8 small:h-8" />
-                  </LocalizedClientLink>
+                    testId="nav-cart-link"
+                    icon={<ShoppingBag className="w-6 h-6" />}
+                    hint="Your items"
+                    label="Cart"
+                  />
                 }
               >
                 <CartButton />
