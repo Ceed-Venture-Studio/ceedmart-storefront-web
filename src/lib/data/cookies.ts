@@ -100,25 +100,3 @@ export const removeCartId = async () => {
     maxAge: -1,
   })
 }
-
-export const setPulseToken = async (token: string) => {
-  const cookies = await nextCookies()
-  cookies.set("_pulse_token", token, {
-    maxAge: 60 * 60 * 24 * 365,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  })
-}
-
-export const getPulseToken = async () => {
-  const cookies = await nextCookies()
-  return cookies.get("_pulse_token")?.value
-}
-
-export const removePulseToken = async () => {
-  const cookies = await nextCookies()
-  cookies.set("_pulse_token", "", {
-    maxAge: -1,
-  })
-}

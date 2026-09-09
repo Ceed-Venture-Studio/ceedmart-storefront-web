@@ -13,9 +13,7 @@ import {
   getCartId,
   removeAuthToken,
   removeCartId,
-  removePulseToken,
   setAuthToken,
-  setPulseToken,
 } from "./cookies"
 
 export const retrieveCustomer =
@@ -83,19 +81,15 @@ export async function signup(_currentState: unknown, formData: FormData) {
       ...(await getAuthHeaders()),
     }
 
-    // Use raw fetch to capture pulse_token from response
+    // Raw fetch rather than sdk.store.customer.create so the auth cookie
+    // stays ours to set, below.
     const createRes = await sdk.client.fetch<{
       customer: HttpTypes.StoreCustomer
-      pulse_token?: string
     }>("/store/customers", {
       method: "POST",
       body: { ...customerForm, password },
       headers,
     })
-
-    if (createRes.pulse_token) {
-      await setPulseToken(createRes.pulse_token)
-    }
 
     const loginToken = await sdk.auth.login("customer", "emailpass", {
       email: customerForm.email,
@@ -143,20 +137,16 @@ export async function login(_currentState: unknown, formData: FormData) {
   const redirectTo = safeRedirect(formData.get("redirect_to"))
 
   try {
-    // Use raw fetch to capture pulse_token from login response
+    // Raw fetch rather than sdk.auth.login so the token lands in our own
+    // cookie via setAuthToken, which is what getAuthHeaders reads.
     const loginRes = await sdk.client.fetch<{
       token: string
-      pulse_token?: string
     }>("/auth/customer/emailpass", {
       method: "POST",
       body: { email, password },
     })
 
     await setAuthToken(loginRes.token)
-
-    if (loginRes.pulse_token) {
-      await setPulseToken(loginRes.pulse_token)
-    }
 
     const customerCacheTag = await getCacheTag("customers")
     revalidateTag(customerCacheTag)
@@ -193,7 +183,6 @@ export async function signout(countryCode: string) {
   await sdk.auth.logout()
 
   await removeAuthToken()
-  await removePulseToken()
 
   const customerCacheTag = await getCacheTag("customers")
   revalidateTag(customerCacheTag)
