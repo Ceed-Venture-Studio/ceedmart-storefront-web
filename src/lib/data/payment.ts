@@ -105,3 +105,33 @@ export const getCartPaymentStatus = async (): Promise<string | null> => {
     })
     .catch(() => null)
 }
+
+/**
+ * Has this cart actually been paid for, according to Pulse?
+ *
+ * Distinct from getCartPaymentStatus, which reports what OUR session says.
+ * A session reads `pending` until confirmation arrives, so during that
+ * window our record and the truth disagree — and that is precisely the
+ * window in which someone taps back into the payment step.
+ *
+ * `paid: false` with reason "unknown" means we could not reach Pulse. It is
+ * NOT permission to discard a session; the caller must fail safe.
+ */
+export const isCartPaid = async (): Promise<{
+  paid: boolean
+  reason: string | null
+}> => {
+  const cartId = await getCartId()
+  if (!cartId) {
+    return { paid: false, reason: "no_cart" }
+  }
+
+  const headers = { ...(await getAuthHeaders()) }
+
+  return sdk.client
+    .fetch<{ paid: boolean; reason: string | null }>(
+      `/store/carts/${cartId}/payment-status`,
+      { method: "GET", headers, cache: "no-store" }
+    )
+    .catch(() => ({ paid: false, reason: "unknown" }))
+}

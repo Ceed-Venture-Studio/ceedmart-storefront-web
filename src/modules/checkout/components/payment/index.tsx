@@ -4,6 +4,7 @@ import { RadioGroup } from "@headlessui/react"
 import { isStripeLike, isPulsePay, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
 import {
+  isCartPaid,
   listPulsePaymentOptions,
   type PulsePaymentOption,
 } from "@lib/data/payment"
@@ -163,6 +164,27 @@ const Payment = ({
     }
 
     try {
+      // Never replace a session that has already been paid.
+      //
+      // Medusa's createPaymentSessions DELETES the existing session before
+      // making a new one. Between paying and the webhook confirming, our
+      // session still reads `pending` — so tapping back into this step threw
+      // away a completed payment and started another. It happened twice, to
+      // two real payments, and left the customer watching a page that could
+      // never finish because the session it polled had never been paid.
+      //
+      // Only a definite "yes" stops us. An unreachable Pulse answers
+      // `unknown`, and we carry on rather than stranding someone who has not
+      // paid at all.
+      const alreadyPaid = await isCartPaid()
+      if (alreadyPaid.paid) {
+        if (paymentTab && !paymentTab.closed) {
+          paymentTab.close()
+        }
+        router.push(pathname + "?" + createQueryString("step", "review"))
+        return
+      }
+
       const shouldInputCard =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
