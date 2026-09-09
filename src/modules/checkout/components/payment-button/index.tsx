@@ -2,13 +2,13 @@
 
 import { isManual, isPulsePay, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
+import { getCartPaymentStatus } from "@lib/data/payment"
 import { HttpTypes } from "@medusajs/types"
 import { Button, Text } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
 import React, { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import ErrorMessage from "../error-message"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
@@ -39,7 +39,11 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
       )
     case isPulsePay(paymentSession?.provider_id):
       return (
-        <PulsePayButton notReady={notReady} data-testid={dataTestId} />
+        <PulsePayButton
+          notReady={notReady}
+          initialStatus={paymentSession?.status}
+          data-testid={dataTestId}
+        />
       )
     case isManual(paymentSession?.provider_id):
       return (
@@ -198,17 +202,30 @@ const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
   )
 }
 
+/** The gateway has actually taken the money. */
+const isPaid = (status?: string | null) =>
+  status === "authorized" || status === "captured"
+
 const PulsePayButton = ({
   notReady,
+  initialStatus,
   "data-testid": dataTestId,
 }: {
   notReady: boolean
+  initialStatus?: string | null
   "data-testid"?: string
 }) => {
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [needsNewPayment, setNeedsNewPayment] = useState(false)
   const searchParams = useSearchParams()
+
+  // Whether the payment session says the money is in.
+  //
+  // Seeded from the cart the server rendered, then polled: the session turns
+  // authorized when Pulse's webhook lands, which is seconds AFTER the
+  // customer is back on this page. Without polling the button would stay
+  // greyed until they reloaded, which reads as broken.
+  const [paid, setPaid] = useState(() => isPaid(initialStatus))
 
   // Captured on the FIRST render, deliberately.
   //
@@ -231,37 +248,62 @@ const PulsePayButton = ({
   const handlePayment = async () => {
     setSubmitting(true)
     setErrorMessage(null)
-    setNeedsNewPayment(false)
 
     await placeOrder()
       .catch((err) => {
-        // A payment session can be dead by the time the customer confirms:
-        // Pulse marks a payment Cancelled as soon as anything reads it before
-        // the customer has finished paying, and a read happens on the way
-        // here. From the customer's side they clicked Pay, saw Paystack, and
-        // are now being told no — with no way forward, because this page has
-        // no controls other than this button.
+        // Deliberately no "start a new payment" offer any more.
         //
-        // Starting a fresh payment is always allowed and always works, so
-        // offer that rather than leaving them stuck. We cannot stop Pulse
-        // cancelling the session; we can stop it ending the sale.
+        // It was there because the order could not be placed while the
+        // session still read as unpaid, and restarting was the only way
+        // forward. But it told a customer who HAD paid that nothing was
+        // charged and invited them to pay a second time — the worst thing
+        // this page can say. The session lags because confirmation arrives
+        // by webhook moments later, so the answer is to wait for it, which
+        // is what the polling below does.
         const message = String(err?.message ?? err)
-        const sessionIsDead =
+        const notConfirmedYet =
           /cancel|not authorized|authoriz|payment session|pending/i.test(message)
 
-        if (sessionIsDead) {
-          setNeedsNewPayment(true)
-          setErrorMessage(
-            "That payment didn't complete. Nothing has been charged — start a new payment to finish your order."
-          )
-        } else {
-          setErrorMessage(message)
-        }
+        setErrorMessage(
+          notConfirmedYet
+            ? "We haven't had confirmation from your bank yet. Keep this page open — " +
+                "it completes on its own, and nothing will be charged twice."
+            : message
+        )
       })
       .finally(() => {
         setSubmitting(false)
       })
   }
+
+  // Wait for the payment to be confirmed, rather than guessing.
+  //
+  // Pulse confirms by webhook, which arrives seconds after the customer is
+  // redirected back — so on arrival the session is usually still pending.
+  // Polling the cart is what turns the button live at the right moment,
+  // and stops us placing an order against a payment that has not landed.
+  useEffect(() => {
+    if (paid || notReady) {
+      return
+    }
+    let cancelled = false
+    const tick = async () => {
+      try {
+        const status = await getCartPaymentStatus()
+        if (!cancelled && isPaid(status)) {
+          setPaid(true)
+        }
+      } catch {
+        // A failed poll is not worth showing anyone; the next one runs.
+      }
+    }
+    const timer = setInterval(tick, 4000)
+    tick()
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [paid, notReady])
 
   // Place the order the moment the customer returns from the gateway.
   //
@@ -274,15 +316,22 @@ const PulsePayButton = ({
   // Not when notReady: the cart is missing something and completing would
   // fail anyway, so leave the button and let them see what is wrong.
   useEffect(() => {
-    if (!returnedFromGateway || attempted.current || notReady) {
+    // `paid` is the new condition. Previously this fired on return from the
+    // gateway alone, which meant placing an order against a session that was
+    // still pending — the call failed and the customer was told their
+    // payment had not gone through when it had.
+    if (!returnedFromGateway || !paid || attempted.current || notReady) {
       return
     }
     attempted.current = true
     handlePayment()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [returnedFromGateway, notReady])
+  }, [returnedFromGateway, paid, notReady])
 
   const autoCompleting = returnedFromGateway && submitting
+  // Back from the gateway but not yet confirmed: the state this page spends
+  // most of its life in, and the one it used to mishandle.
+  const awaitingConfirmation = returnedFromGateway && !paid && !submitting
 
   return (
     <>
@@ -295,26 +344,34 @@ const PulsePayButton = ({
         </Text>
       )}
 
+      {awaitingConfirmation && (
+        <Text
+          className="txt-medium text-ui-fg-subtle mb-3"
+          data-testid="awaiting-confirmation-notice"
+        >
+          Waiting for your bank to confirm the payment. This usually takes a
+          few seconds — keep this page open and your order completes on its
+          own.
+        </Text>
+      )}
+
+      {/* Greyed until the payment is actually confirmed. Pressing it earlier
+          could only ever fail, and the failure read as "you have not paid" to
+          someone who had. */}
       <Button
-        disabled={notReady || submitting}
-        isLoading={submitting}
+        disabled={notReady || submitting || !paid}
+        isLoading={submitting || awaitingConfirmation}
         onClick={handlePayment}
         size="large"
         className="bg-ceedmart-navy hover:bg-ceedmart-navy-light"
         data-testid={dataTestId}
       >
-        {autoCompleting ? "Completing order" : "Confirm Order"}
+        {autoCompleting
+          ? "Completing order"
+          : awaitingConfirmation
+            ? "Confirming payment…"
+            : "Confirm Order"}
       </Button>
-
-      {needsNewPayment && (
-        <LocalizedClientLink
-          href="/checkout?step=payment"
-          className="txt-medium-plus text-ceedmart-navy underline mt-3 inline-block"
-          data-testid="restart-payment-link"
-        >
-          Start a new payment
-        </LocalizedClientLink>
-      )}
 
       <ErrorMessage
         error={errorMessage}

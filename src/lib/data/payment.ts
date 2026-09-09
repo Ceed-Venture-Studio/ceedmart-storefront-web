@@ -1,7 +1,7 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { getAuthHeaders, getCacheOptions, getCartId } from "./cookies"
 import { HttpTypes } from "@medusajs/types"
 
 export const listCartPaymentMethods = async (regionId: string) => {
@@ -64,4 +64,44 @@ export const listPulsePaymentOptions = async (): Promise<{
       { method: "GET", headers, cache: "no-store" }
     )
     .catch(() => ({ options: [], reason: "unavailable" }))
+}
+
+/**
+ * The live status of the cart's payment session.
+ *
+ * Deliberately NOT retrieveCart: that is force-cached against a tag, so a
+ * poll built on it returns the same answer forever — and its default field
+ * set does not include payment_collection at all, so the status would be
+ * undefined even uncached. Both were true of the first version of this and
+ * are exactly why the confirm button never came back to life.
+ *
+ * Returns null when there is nothing to report, which the caller reads as
+ * "not confirmed yet" rather than as an error.
+ */
+export const getCartPaymentStatus = async (): Promise<string | null> => {
+  const cartId = await getCartId()
+  if (!cartId) {
+    return null
+  }
+
+  const headers = { ...(await getAuthHeaders()) }
+
+  return sdk.client
+    .fetch<{ cart: any }>(`/store/carts/${cartId}`, {
+      method: "GET",
+      query: {
+        fields:
+          "id,*payment_collection,*payment_collection.payment_sessions",
+      },
+      headers,
+      cache: "no-store",
+    })
+    .then(({ cart }) => {
+      const sessions = cart?.payment_collection?.payment_sessions ?? []
+      // The most recently created session is the one in play: starting a
+      // fresh payment leaves the older ones behind.
+      const latest = sessions[sessions.length - 1]
+      return latest?.status ?? null
+    })
+    .catch(() => null)
 }
