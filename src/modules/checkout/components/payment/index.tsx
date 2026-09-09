@@ -15,6 +15,7 @@ import PaymentContainer, {
   StripeCardContainer,
 } from "@modules/checkout/components/payment-container"
 import Divider from "@modules/common/components/divider"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
@@ -52,6 +53,9 @@ const Payment = ({
   const [pulseOptions, setPulseOptions] = useState<PulsePaymentOption[] | null>(
     null
   )
+  // Why the list is empty, when it is. "not_signed_in" is recoverable in one
+  // click and deserves saying so; the others are not the customer's doing.
+  const [pulseReason, setPulseReason] = useState<string | null>(null)
   const [selectedChannel, setSelectedChannel] = useState<string | undefined>()
 
   // Whether to name a gateway when creating the payment. With one
@@ -93,6 +97,15 @@ const Payment = ({
   const listGateways = Boolean(
     pulseMethodId && pulseOptions && pulseOptions.length > 0
   )
+
+  // Pulse mints its token per customer, so a signed-out shopper always comes
+  // back with nothing. Showing them the generic payment row was a dead end:
+  // it looked selectable, and behind it there was no gateway, no pim_id, and
+  // a card flow that is account-only by design. Ask them to sign in instead.
+  const needsSignIn = pulseReason === "not_signed_in"
+  const signInHref = `/account?redirect=${encodeURIComponent(
+    `${pathname}?step=payment`
+  )}`
 
   // Titles come from Pulse, so a gateway added on their dashboard appears
   // here without a deploy and without a local name map to go stale.
@@ -245,9 +258,10 @@ const Payment = ({
       return
     }
     let cancelled = false
-    listPulsePaymentOptions().then(({ options }) => {
+    listPulsePaymentOptions().then(({ options, reason }) => {
       if (!cancelled) {
         setPulseOptions(options)
+        setPulseReason(reason)
       }
     })
     return () => {
@@ -294,7 +308,31 @@ const Payment = ({
       </div>
       <div>
         <div className={isOpen ? "block" : "hidden"}>
-          {!paidByGiftcard && visiblePaymentMethods.length > 0 && (
+          {!paidByGiftcard && needsSignIn && (
+            <div
+              className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-4 flex flex-col gap-3"
+              data-testid="payment-sign-in-prompt"
+            >
+              <Text className="txt-medium-plus text-ui-fg-base">
+                Sign in to complete payment
+              </Text>
+              <Text className="txt-medium text-ui-fg-subtle">
+                Card and bank payments are tied to your account, so we can
+                show your order and its receipt afterwards. Your cart is kept
+                — you&apos;ll come straight back here.
+              </Text>
+              <LocalizedClientLink href={signInHref} className="w-fit">
+                <Button
+                  className="h-10 bg-ceedmart-navy hover:bg-ceedmart-navy-light"
+                  data-testid="payment-sign-in-button"
+                >
+                  Sign in
+                </Button>
+              </LocalizedClientLink>
+            </div>
+          )}
+
+          {!paidByGiftcard && !needsSignIn && visiblePaymentMethods.length > 0 && (
             <>
               {listGateways ? (
                 <RadioGroup

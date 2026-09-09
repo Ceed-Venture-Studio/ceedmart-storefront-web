@@ -121,9 +121,26 @@ export async function signup(_currentState: unknown, formData: FormData) {
   }
 }
 
+/**
+ * Where to send someone after signing in.
+ *
+ * Only a path on this site. An absolute URL — "//evil.test", "https://…" —
+ * is discarded rather than followed, because this value arrives from a query
+ * string and a login form that redirects anywhere it is told is an open
+ * redirect wearing a helpful face.
+ */
+const safeRedirect = (value: FormDataEntryValue | null): string | null => {
+  const path = typeof value === "string" ? value.trim() : ""
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    return null
+  }
+  return path
+}
+
 export async function login(_currentState: unknown, formData: FormData) {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+  const redirectTo = safeRedirect(formData.get("redirect_to"))
 
   try {
     // Use raw fetch to capture pulse_token from login response
@@ -157,6 +174,18 @@ export async function login(_currentState: unknown, formData: FormData) {
     await transferCart()
   } catch (error: any) {
     return null
+  }
+
+  // Back where they came from, when they were sent here mid-task.
+  //
+  // Someone who reached this form from checkout is signing in in order to
+  // pay, not to visit their account. Landing them on the dashboard leaves
+  // them to find their way back to a cart they had already filled.
+  //
+  // Outside the try above on purpose: redirect() signals by throwing, and a
+  // catch would swallow it and silently do nothing.
+  if (redirectTo) {
+    redirect(redirectTo)
   }
 }
 

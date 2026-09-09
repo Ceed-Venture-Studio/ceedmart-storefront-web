@@ -4,6 +4,7 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import { useActionState } from "react"
+import { useSearchParams } from "next/navigation"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -11,6 +12,9 @@ type Props = {
 
 const Login = ({ setCurrentView }: Props) => {
   const [message, formAction, isPending] = useActionState(login, null)
+  // Set when the customer was sent here from somewhere that needed them
+  // signed in — checkout, today. Validated server-side before it is used.
+  const redirectTo = useSearchParams().get("redirect")
 
   return (
     <div
@@ -22,6 +26,9 @@ const Login = ({ setCurrentView }: Props) => {
         Sign in to access wholesale pricing and manage bulk orders.
       </p>
       <form className="w-full" action={formAction}>
+        {redirectTo && (
+          <input type="hidden" name="redirect_to" value={redirectTo} />
+        )}
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="Email"
