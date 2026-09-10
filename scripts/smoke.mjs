@@ -62,7 +62,10 @@ const PAGES = [
   { path: `/${REGION}/cart`, expect: ["Cart"] },
   { path: `/${REGION}/preorder`, expect: ["Pre-order from the US"], flag: "preorder" },
   { path: `/${REGION}/auctions`, expect: ["Auctions"], flag: "auction" },
-  { path: `/${REGION}/build`, expect: ["Build your device"], flag: "custom_build" },
+  // "Customise your", not the whole heading: the noun is the build type and
+  // switches between "PC" and "laptop" with ?type=, so matching the full
+  // string would tie this check to whichever default the page happens to use.
+  { path: `/${REGION}/build`, expect: ["Customise your"], flag: "custom_build" },
 ]
 
 // Static assets. /logo.png is here specifically: the middleware once
