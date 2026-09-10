@@ -370,3 +370,90 @@ export const updateCustomerAddress = async (
       return { success: false, error: err.toString() }
     })
 }
+
+/**
+ * Ask for a password-reset email.
+ *
+ * Always reports success, even for an address with no account. Medusa's own
+ * route does the same — it runs the workflow with throwOnError false — and
+ * for the same reason: a form that says "no such account" is a way to find
+ * out who banks here. The customer sees one message either way.
+ */
+export async function requestPasswordReset(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const email = (formData.get("email") as string)?.trim()
+
+  if (!email) {
+    return { ok: false, message: "Enter the email address you signed up with." }
+  }
+
+  try {
+    await sdk.client.fetch("/auth/customer/emailpass/reset-password", {
+      method: "POST",
+      body: { identifier: email },
+    })
+  } catch (error: any) {
+    // Deliberately swallowed. The endpoint returns 201 whether or not the
+    // account exists, so a failure here is ours — a network blip, Pulse
+    // down — and telling the customer to try again is more useful than an
+    // internal message. It is logged for whoever has to look.
+    console.error("[password-reset] request failed:", error?.message ?? error)
+  }
+
+  return {
+    ok: true,
+    message:
+      "If that email has an account, we've sent a link to reset the password. It expires shortly, so use it soon.",
+  }
+}
+
+/**
+ * Set a new password using the token from the reset email.
+ *
+ * The token IS the authentication — Medusa reads entity_id from it — so
+ * there is no email field here and no way to point it at someone else.
+ */
+export async function resetPassword(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const token = formData.get("token") as string
+  const password = formData.get("password") as string
+  const confirm = formData.get("confirm_password") as string
+
+  if (!token) {
+    return {
+      ok: false,
+      message:
+        "This reset link is missing its token. Request a new email and use the link from that.",
+    }
+  }
+
+  if (!password || password.length < 8) {
+    return { ok: false, message: "Use a password of at least 8 characters." }
+  }
+
+  if (password !== confirm) {
+    return { ok: false, message: "Those two passwords don't match." }
+  }
+
+  try {
+    await sdk.client.fetch("/auth/customer/emailpass/update", {
+      method: "POST",
+      body: { password },
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  } catch (error: any) {
+    // A rejected token is the common case here, and it is almost always
+    // expiry or reuse rather than anything the customer did wrong.
+    return {
+      ok: false,
+      message:
+        "That link has expired or has already been used. Request a new one and try again.",
+    }
+  }
+
+  return { ok: true, message: "Password updated. You can sign in with it now." }
+}

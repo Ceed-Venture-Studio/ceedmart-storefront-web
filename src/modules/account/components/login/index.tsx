@@ -48,6 +48,16 @@ const Login = ({ setCurrentView }: Props) => {
             data-testid="password-input"
           />
         </div>
+        {/* Under the password field, where someone realises they have
+            forgotten it — not at the bottom after the submit button. */}
+        <button
+          type="button"
+          onClick={() => setCurrentView(LOGIN_VIEW.FORGOT_PASSWORD)}
+          className="text-ui-fg-subtle text-small-regular underline mt-2 w-fit"
+          data-testid="forgot-password-button"
+        >
+          Forgot your password?
+        </button>
         <ErrorMessage error={message} data-testid="login-error-message" />
         <SubmitButton
           data-testid="sign-in-button"
