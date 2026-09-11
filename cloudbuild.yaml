@@ -4,6 +4,13 @@
 #     --substitutions=_REVALIDATE_SECRET=$(cat /path/to/secret)
 substitutions:
   _REVALIDATE_SECRET: supersecret  # placeholder; override via --substitutions
+  # GA4 measurement id (G-XXXXXXXXXX). Empty by default so a build that
+  # forgets to pass it ships WITHOUT analytics rather than silently reporting
+  # into the wrong property. Not a secret — it is visible in the page source
+  # of every site that uses it — but it is a build arg because NEXT_PUBLIC_
+  # values are inlined into the client bundle at build time, so setting it on
+  # the Cloud Run service afterwards has no effect.
+  _GA_ID: ""
 
 steps:
   - name: "gcr.io/cloud-builders/docker"
@@ -17,6 +24,8 @@ steps:
       - "NEXT_PUBLIC_BASE_URL=https://ceedmart-storefront-870514614467.europe-west1.run.app"
       - "--build-arg"
       - "NEXT_PUBLIC_DEFAULT_REGION=ng"
+      - "--build-arg"
+      - "NEXT_PUBLIC_GA_ID=${_GA_ID}"
       - "--build-arg"
       - "REVALIDATE_SECRET=${_REVALIDATE_SECRET}"
       - "-t"
