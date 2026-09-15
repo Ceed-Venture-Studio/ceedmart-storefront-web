@@ -14,11 +14,16 @@ const ShippingAddress = ({
   cart,
   checked,
   onChange,
+  isPickup = false,
 }: {
   customer: HttpTypes.StoreCustomer | null
   cart: HttpTypes.StoreCart | null
   checked: boolean
   onChange: () => void
+  /** Collecting in person: ask who is collecting and how to reach them, and
+   *  nothing else. A street address is not merely unnecessary for pickup —
+   *  asking for one implies we intend to deliver there. */
+  isPickup?: boolean
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({
     "shipping_address.first_name": cart?.shipping_address?.first_name || "",
@@ -180,42 +185,64 @@ const ShippingAddress = ({
           required
           data-testid="shipping-last-name-input"
         />
-        <Input
-          label="Address"
-          name="shipping_address.address_1"
-          autoComplete="address-line1"
-          value={formData["shipping_address.address_1"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-address-input"
-        />
-        <Input
-          label="Company"
-          name="shipping_address.company"
-          value={formData["shipping_address.company"]}
-          onChange={handleChange}
-          autoComplete="organization"
-          data-testid="shipping-company-input"
-        />
-        <Input
-          label="Postal code"
-          name="shipping_address.postal_code"
-          autoComplete="postal-code"
-          value={formData["shipping_address.postal_code"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-postal-code-input"
-        />
-        <CountrySelect
-          name="shipping_address.country_code"
-          autoComplete="country"
-          region={cart?.region}
-          value={formData["shipping_address.country_code"]}
-          onChange={handleCountryChange}
-          required
-          data-testid="shipping-country-select"
-        />
-        {isNigeria ? (
+        {isPickup ? (
+          // country_code still has to reach the server: setAddresses builds
+          // the post-submit redirect out of it, and the region is resolved
+          // from it. It is the one address field pickup cannot drop, so it
+          // travels hidden rather than being asked for.
+          <input
+            type="hidden"
+            name="shipping_address.country_code"
+            value={
+              formData["shipping_address.country_code"] ||
+              cart?.region?.countries?.[0]?.iso_2 ||
+              ""
+            }
+          />
+        ) : (
+          <Input
+            label="Address"
+            name="shipping_address.address_1"
+            autoComplete="address-line1"
+            value={formData["shipping_address.address_1"]}
+            onChange={handleChange}
+            required
+            data-testid="shipping-address-input"
+          />
+        )}
+        {!isPickup && (
+          <Input
+            label="Company"
+            name="shipping_address.company"
+            value={formData["shipping_address.company"]}
+            onChange={handleChange}
+            autoComplete="organization"
+            data-testid="shipping-company-input"
+          />
+        )}
+        {!isPickup && (
+          <Input
+            label="Postal code"
+            name="shipping_address.postal_code"
+            autoComplete="postal-code"
+            value={formData["shipping_address.postal_code"]}
+            onChange={handleChange}
+            required
+            data-testid="shipping-postal-code-input"
+          />
+        )}
+        {!isPickup && (
+          <CountrySelect
+            name="shipping_address.country_code"
+            autoComplete="country"
+            region={cart?.region}
+            value={formData["shipping_address.country_code"]}
+            onChange={handleCountryChange}
+            required
+            data-testid="shipping-country-select"
+          />
+        )}
+        {isPickup ? null : isNigeria ? (
           <NigeriaAddressSelect
             stateValue={formData["shipping_address.province"]}
             lgaValue={formData["shipping_address.city"]}
@@ -250,17 +277,27 @@ const ShippingAddress = ({
         )}
       </div>
       <div className="my-8 flex flex-col gap-y-4">
-        <Checkbox
-          label="Billing address same as shipping address"
-          name="same_as_billing"
-          checked={checked}
-          onChange={onChange}
-          data-testid="billing-address-checkbox"
-        />
+        {isPickup ? (
+          // "Billing address same as shipping address" cannot be answered
+          // when there is no shipping address. Submitted as on, so billing
+          // mirrors the contact details rather than opening a second form
+          // for an order nobody is shipping.
+          <input type="hidden" name="same_as_billing" value="on" />
+        ) : (
+          <Checkbox
+            label="Billing address same as shipping address"
+            name="same_as_billing"
+            checked={checked}
+            onChange={onChange}
+            data-testid="billing-address-checkbox"
+          />
+        )}
         {/* Only for signed-in customers — there is no address book to save
             into otherwise, and offering it to a guest promises something we
-            cannot deliver. */}
-        {customer && (
+            cannot deliver. Never on pickup: the "address" there is a name and
+            a phone number, and saving it would put a useless entry in the
+            book the next delivery order then offers back. */}
+        {customer && !isPickup && (
           <Checkbox
             label="Save this address for next time"
             name="save_address"

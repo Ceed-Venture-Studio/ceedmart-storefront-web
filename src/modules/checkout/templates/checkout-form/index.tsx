@@ -64,15 +64,45 @@ export default async function CheckoutForm({
     }
   }
 
-  const acceptedVersionId = readCartCeedmart(cart).terms_version_id
+  const ceedmart = readCartCeedmart(cart)
+  const acceptedVersionId = ceedmart.terms_version_id
+
+  // One decision, read in one place. Delivery is the default because it is
+  // what most orders are, and because a cart with no stated preference must
+  // not silently become a pickup nobody is expecting to collect.
+  const fulfillmentMode = ceedmart.fulfillment === "pickup" ? "pickup" : "delivery"
+
+  // Split by what actually fulfils the order rather than by name: a pickup
+  // option is one whose fulfillment set is of type `pickup`.
+  const pickupOptions = shippingMethods.filter(
+    (sm) => sm.service_zone?.fulfillment_set?.type === "pickup"
+  )
+  const deliveryOptions = shippingMethods.filter(
+    (sm) => sm.service_zone?.fulfillment_set?.type !== "pickup"
+  )
 
   return (
     <div className="w-full grid grid-cols-1 gap-y-8">
-      <FulfillmentModeSelector cart={cart} shops={shops} />
+      <FulfillmentModeSelector
+        cart={cart}
+        shops={shops}
+        pickupOptions={pickupOptions}
+        soleDeliveryOptionId={
+          deliveryOptions.length === 1 ? deliveryOptions[0].id : null
+        }
+      />
 
-      <Addresses cart={cart} customer={customer} />
+      <Addresses
+        cart={cart}
+        customer={customer}
+        isPickup={fulfillmentMode === "pickup"}
+      />
 
-      <Shipping cart={cart} availableShippingMethods={shippingMethods} />
+      <Shipping
+        cart={cart}
+        availableShippingMethods={shippingMethods}
+        fulfillmentMode={fulfillmentMode}
+      />
 
       {preorderOffer?.terms && (
         <PreorderTerms

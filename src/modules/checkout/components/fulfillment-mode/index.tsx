@@ -1,6 +1,7 @@
 "use client"
 
 import { setFulfillmentMode, type FulfillmentMode as ModeT } from "@lib/data/fulfillment-mode"
+import { setShippingMethod } from "@lib/data/cart"
 import type { PublicShop } from "@lib/data/shops"
 import { HttpTypes } from "@medusajs/types"
 import { Heading, Text } from "@medusajs/ui"
@@ -19,9 +20,19 @@ import { useState, useTransition } from "react"
 type Props = {
   cart: HttpTypes.StoreCart | null
   shops: PublicShop[]
+  /** Shipping options whose fulfillment set is a pickup set — the real,
+   *  configured ability to collect an order. */
+  pickupOptions: HttpTypes.StoreCartShippingOption[]
+  /** The single delivery option, when there is exactly one. */
+  soleDeliveryOptionId: string | null
 }
 
-const FulfillmentModeSelector = ({ cart, shops }: Props) => {
+const FulfillmentModeSelector = ({
+  cart,
+  shops,
+  pickupOptions,
+  soleDeliveryOptionId,
+}: Props) => {
   const initialCeedmart = ((cart?.metadata as any)?.ceedmart ?? {}) as {
     fulfillment?: ModeT
     store_id?: string
@@ -35,6 +46,33 @@ const FulfillmentModeSelector = ({ cart, shops }: Props) => {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
+  // Whether pickup is possible at all.
+  //
+  // This used to be `shops.length > 0`, where shops came from /store/shops —
+  // sales channels carrying a ceedmart.code in their metadata. No channel in
+  // production has ever carried one, so the list is empty, the button was
+  // permanently `disabled`, and clicking Pickup did nothing whatsoever. It
+  // was not even a failed click: a disabled button fires no event, so there
+  // was nothing to see and nothing logged.
+  //
+  // Meanwhile a genuine pickup option — "Office Pickup (Ceedmart Eliozu,
+  // Port Harcourt)", a fulfillment set of type `pickup` — was configured and
+  // offered one step later. Two sources of truth for one capability, and the
+  // one the customer met first was the one nobody had populated.
+  //
+  // The shipping option is the authority now, because it is what actually
+  // fulfils the order. The shops list survives as the nicer store picker for
+  // when multiple shops are provisioned.
+  const canPickup = pickupOptions.length > 0 || shops.length > 0
+
+  // Name the place they will collect from. The option name already reads
+  // "Office Pickup (Ceedmart Eliozu, Port Harcourt)", which is more useful
+  // on the button than a generic line.
+  const pickupLocationLabel =
+    shops.length === 0 && pickupOptions.length === 1
+      ? pickupOptions[0].name
+      : null
+
   const persist = (nextMode: ModeT, nextShopId: string | null) => {
     setError(null)
     startTransition(async () => {
@@ -46,10 +84,33 @@ const FulfillmentModeSelector = ({ cart, shops }: Props) => {
     })
   }
 
+  // Choosing here also sets the cart's shipping method. Before, this wrote
+  // metadata and nothing else, so the customer chose pickup and was then
+  // asked to choose between pickup and delivery all over again on the next
+  // step — two controls for one decision, each able to contradict the other.
   const handleModeChange = (nextMode: ModeT) => {
     setMode(nextMode)
     const chosenShop = nextMode === "pickup" ? shopId || null : null
     persist(nextMode, chosenShop)
+
+    const optionId =
+      nextMode === "pickup" ? pickupOptions[0]?.id : soleDeliveryOptionId
+
+    // Only when the choice is unambiguous. With several delivery options the
+    // Shipping step still has a real question to ask, and pre-picking one
+    // would answer it on the customer's behalf.
+    if (optionId && cart?.id) {
+      startTransition(async () => {
+        try {
+          await setShippingMethod({
+            cartId: cart.id,
+            shippingMethodId: optionId,
+          })
+        } catch (e: any) {
+          setError(e?.message ?? "Failed to set the shipping method")
+        }
+      })
+    }
   }
 
   const handleShopChange = (nextShopId: string) => {
@@ -61,7 +122,9 @@ const FulfillmentModeSelector = ({ cart, shops }: Props) => {
     <div>
       <div className="flex flex-row items-center justify-between mb-6">
         <Heading level="h2" className="flex flex-row text-3xl-regular gap-x-2 items-baseline">
-          Delivery
+          {/* Not "Delivery": this step is where delivery is one of the two
+              answers, and naming it after one of them prejudges the choice. */}
+          How you'll get it
         </Heading>
       </div>
 
@@ -90,13 +153,13 @@ const FulfillmentModeSelector = ({ cart, shops }: Props) => {
                 ? "border-ui-fg-base bg-ui-bg-subtle"
                 : "border-ui-border-base hover:bg-ui-bg-subtle-hover"
             }`}
-            disabled={pending || shops.length === 0}
+            disabled={pending || !canPickup}
           >
             <span className="txt-medium-plus">Pickup</span>
             <span className="txt-small text-ui-fg-subtle">
-              {shops.length === 0
+              {!canPickup
                 ? "No pickup shops available"
-                : "Collect from a Ceedmart shop."}
+                : pickupLocationLabel ?? "Collect from a Ceedmart shop."}
             </span>
           </button>
         </div>

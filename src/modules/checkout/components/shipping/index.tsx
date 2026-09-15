@@ -32,12 +32,12 @@ import MedusaRadio from "@modules/common/components/radio"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 
-const PICKUP_OPTION_ON = "__PICKUP_ON"
-const PICKUP_OPTION_OFF = "__PICKUP_OFF"
-
 type ShippingProps = {
   cart: HttpTypes.StoreCart
   availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
+  /** Chosen at the top of checkout. This step shows the options for that
+   *  mode and no longer re-asks which mode it is. */
+  fulfillmentMode: "pickup" | "delivery"
 }
 
 function formatAddress(address: HttpTypes.StoreCartAddress) {
@@ -69,12 +69,12 @@ function formatAddress(address: HttpTypes.StoreCartAddress) {
 const Shipping: React.FC<ShippingProps> = ({
   cart,
   availableShippingMethods,
+  fulfillmentMode,
 }) => {
+  const isPickup = fulfillmentMode === "pickup"
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingPrices, setIsLoadingPrices] = useState(true)
 
-  const [showPickupOptions, setShowPickupOptions] =
-    useState<string>(PICKUP_OPTION_OFF)
   const [calculatedPricesMap, setCalculatedPricesMap] = useState<
     Record<string, number>
   >({})
@@ -97,8 +97,6 @@ const Shipping: React.FC<ShippingProps> = ({
     (sm) => sm.service_zone?.fulfillment_set?.type === "pickup"
   )
 
-  const hasPickupOptions = !!_pickupMethods?.length
-
   useEffect(() => {
     setIsLoadingPrices(true)
 
@@ -120,9 +118,6 @@ const Shipping: React.FC<ShippingProps> = ({
       }
     }
 
-    if (_pickupMethods?.find((m) => m.id === shippingMethodId)) {
-      setShowPickupOptions(PICKUP_OPTION_ON)
-    }
   }, [availableShippingMethods])
 
   const handleEdit = () => {
@@ -138,12 +133,6 @@ const Shipping: React.FC<ShippingProps> = ({
     variant: "shipping" | "pickup"
   ) => {
     setError(null)
-
-    if (variant === "pickup") {
-      setShowPickupOptions(PICKUP_OPTION_ON)
-    } else {
-      setShowPickupOptions(PICKUP_OPTION_OFF)
-    }
 
     let currentId: string | null = null
     setIsLoading(true)
@@ -180,7 +169,10 @@ const Shipping: React.FC<ShippingProps> = ({
             }
           )}
         >
-          Delivery
+          {/* The mode selector above is also headed "Delivery". Two identical
+              headings on one page, one of them listing a collection point,
+              reads as a repeated step rather than a distinct one. */}
+          {isPickup ? "Collection" : "Delivery"}
           {!isOpen && (cart.shipping_methods?.length ?? 0) > 0 && (
             <CheckCircleSolid />
           )}
@@ -202,55 +194,26 @@ const Shipping: React.FC<ShippingProps> = ({
       </div>
       {isOpen ? (
         <>
+          {/* Not merely hidden — not rendered. A collapsed delivery option is
+              still a radio in the form, and one that can be reached by keyboard
+              or read aloud contradicts the pickup the customer chose. */}
+          {!isPickup && (
           <div className="grid">
             <div className="flex flex-col">
               <span className="font-medium txt-medium text-ui-fg-base">
                 Shipping method
               </span>
               <span className="mb-4 text-ui-fg-muted txt-medium">
-                How would you like you order delivered
+                How would you like your order delivered
               </span>
             </div>
             <div data-testid="delivery-options-container">
               <div className="pb-8 md:pt-0 pt-2">
-                {hasPickupOptions && (
-                  <RadioGroup
-                    value={showPickupOptions}
-                    onChange={(value) => {
-                      const id = _pickupMethods.find(
-                        (option) => !option.insufficient_inventory
-                      )?.id
-
-                      if (id) {
-                        handleSetShippingMethod(id, "pickup")
-                      }
-                    }}
-                  >
-                    <Radio
-                      value={PICKUP_OPTION_ON}
-                      data-testid="delivery-option-radio"
-                      className={clx(
-                        "flex items-center justify-between text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
-                        {
-                          "border-ui-border-interactive":
-                            showPickupOptions === PICKUP_OPTION_ON,
-                        }
-                      )}
-                    >
-                      <div className="flex items-center gap-x-4">
-                        <MedusaRadio
-                          checked={showPickupOptions === PICKUP_OPTION_ON}
-                        />
-                        <span className="text-base-regular">
-                          Pick up your order
-                        </span>
-                      </div>
-                      <span className="justify-self-end text-ui-fg-base">
-                        -
-                      </span>
-                    </Radio>
-                  </RadioGroup>
-                )}
+                {/* The "Pick up your order" radio that used to sit here is
+                    gone. Pickup versus delivery is settled at the top of
+                    checkout; asking again here made it possible to choose
+                    pickup and then be shipped to, or to answer the same
+                    question twice and wonder which answer counted. */}
                 <RadioGroup
                   value={shippingMethodId}
                   onChange={(v) => {
@@ -308,15 +271,18 @@ const Shipping: React.FC<ShippingProps> = ({
               </div>
             </div>
           </div>
+          )}
 
-          {showPickupOptions === PICKUP_OPTION_ON && (
+          {isPickup && (
             <div className="grid">
               <div className="flex flex-col">
                 <span className="font-medium txt-medium text-ui-fg-base">
-                  Store
+                  Collection point
                 </span>
                 <span className="mb-4 text-ui-fg-muted txt-medium">
-                  Choose a store near you
+                  {_pickupMethods && _pickupMethods.length > 1
+                    ? "Choose a store near you"
+                    : "Where you'll collect this order"}
                 </span>
               </div>
               <div data-testid="delivery-options-container">

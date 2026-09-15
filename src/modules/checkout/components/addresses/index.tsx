@@ -17,9 +17,13 @@ import { SubmitButton } from "../submit-button"
 const Addresses = ({
   cart,
   customer,
+  isPickup = false,
 }: {
   cart: HttpTypes.StoreCart | null
   customer: HttpTypes.StoreCustomer | null
+  /** Mirrors cart.metadata.ceedmart.fulfillment. Pickup turns this step into
+   *  contact details only — see ShippingAddress. */
+  isPickup?: boolean
 }) => {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -46,7 +50,7 @@ const Addresses = ({
           level="h2"
           className="flex flex-row text-3xl-regular gap-x-2 items-baseline"
         >
-          Shipping Address
+          {isPickup ? "Contact details" : "Shipping Address"}
           {!isOpen && <CheckCircleSolid />}
         </Heading>
         {!isOpen && cart?.shipping_address && (
@@ -69,6 +73,7 @@ const Addresses = ({
               checked={sameAsBilling}
               onChange={toggleSameAsBilling}
               cart={cart}
+              isPickup={isPickup}
             />
 
             {!sameAsBilling && (
@@ -100,23 +105,29 @@ const Addresses = ({
                     data-testid="shipping-address-summary"
                   >
                     <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                      Shipping Address
+                      {isPickup ? "Collected by" : "Shipping Address"}
                     </Text>
                     <Text className="txt-medium text-ui-fg-subtle">
                       {cart.shipping_address.first_name}{" "}
                       {cart.shipping_address.last_name}
                     </Text>
-                    <Text className="txt-medium text-ui-fg-subtle">
-                      {cart.shipping_address.address_1}{" "}
-                      {cart.shipping_address.address_2}
-                    </Text>
-                    <Text className="txt-medium text-ui-fg-subtle">
-                      {cart.shipping_address.postal_code},{" "}
-                      {cart.shipping_address.city}
-                    </Text>
-                    <Text className="txt-medium text-ui-fg-subtle">
-                      {cart.shipping_address.country_code?.toUpperCase()}
-                    </Text>
+                    {/* A pickup order carries no street address, so these
+                        lines would render as a stray comma and a blank. */}
+                    {!isPickup && (
+                      <>
+                        <Text className="txt-medium text-ui-fg-subtle">
+                          {cart.shipping_address.address_1}{" "}
+                          {cart.shipping_address.address_2}
+                        </Text>
+                        <Text className="txt-medium text-ui-fg-subtle">
+                          {cart.shipping_address.postal_code},{" "}
+                          {cart.shipping_address.city}
+                        </Text>
+                        <Text className="txt-medium text-ui-fg-subtle">
+                          {cart.shipping_address.country_code?.toUpperCase()}
+                        </Text>
+                      </>
+                    )}
                   </div>
 
                   <div
@@ -142,9 +153,11 @@ const Addresses = ({
                       Billing Address
                     </Text>
 
-                    {sameAsBilling ? (
+                    {isPickup || sameAsBilling ? (
                       <Text className="txt-medium text-ui-fg-subtle">
-                        Billing and delivery address are the same.
+                        {isPickup
+                          ? "Billed to the contact details above."
+                          : "Billing and delivery address are the same."}
                       </Text>
                     ) : (
                       <>
