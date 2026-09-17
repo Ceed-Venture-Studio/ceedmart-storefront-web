@@ -8,6 +8,7 @@ import RelatedProducts from "@modules/products/components/related-products"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
 import { notFound } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
+import type { ListingPolicy } from "@lib/data/listing-policy"
 
 type ProductTemplateProps = {
   product: HttpTypes.StoreProduct
@@ -15,6 +16,9 @@ type ProductTemplateProps = {
   countryCode: string
   images: HttpTypes.StoreProductImage[]
   preorderPanel?: React.ReactNode
+  /** Commerce type for this listing, so the detail page can badge it the
+   *  same way the cards do. */
+  policy?: ListingPolicy | null
 }
 
 const ProductTemplate: React.FC<ProductTemplateProps> = ({
@@ -23,6 +27,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
   countryCode,
   images,
   preorderPanel,
+  policy,
 }) => {
   if (!product || !product.id) {
     return notFound()
@@ -40,6 +45,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
             product={product}
             region={region}
             preorderPanel={preorderPanel}
+            policy={policy}
             sidebarBanner={
               <BannerSlot
                 slot="product_sidebar"

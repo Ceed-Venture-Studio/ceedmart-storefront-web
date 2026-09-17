@@ -2,6 +2,11 @@ import { listProductsWithSort } from "@lib/data/products"
 import { listCollections } from "@lib/data/collections"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
+import { listListingPolicies } from "@lib/data/listing-policy"
+import {
+  policyForProduct,
+  targetsFromProducts,
+} from "@lib/util/fulfilment-groups"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -108,6 +113,22 @@ export default async function PaginatedProducts({
   const cart = await retrieveCart().catch(() => null)
   const cartLineItems = cart?.items ?? []
 
+  // Commerce type for the products on this page (BRD §5.1: the type must
+  // show on product cards and search results, not only on the detail page).
+  //
+  // This listing previously rendered no badge at all, because it never asked:
+  // ProductCard takes a `policy` and renders nothing without one, so a US
+  // pre-order browsed from the store, a category, or search looked exactly
+  // like ordinary stock that ships this week. The only place the distinction
+  // survived was the dedicated /preorder page — which a shopper arriving
+  // through the catalogue never passes through.
+  //
+  // One batched call for the twelve products on the page; an outage returns
+  // an empty map and the grid renders as it did before.
+  const policies = await listListingPolicies(
+    targetsFromProducts(products as any)
+  )
+
   return (
     <>
       <ul
@@ -121,6 +142,7 @@ export default async function PaginatedProducts({
                 product={p}
                 region={region}
                 cartLineItems={cartLineItems}
+                policy={policyForProduct(p as any, policies)}
               />
             </li>
           )

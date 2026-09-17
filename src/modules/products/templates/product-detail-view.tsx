@@ -13,6 +13,8 @@ import { buildWhatsAppOrderUrl } from "@lib/data/delivery-locations"
 import { useDeliveryLocation } from "@lib/context/delivery-location-context"
 import MobileActions from "@modules/products/components/product-actions/mobile-actions"
 import ProductPrice from "@modules/products/components/product-price"
+import CommerceTypeBadge from "@modules/common/components/commerce-type-badge"
+import type { ListingPolicy } from "@lib/data/listing-policy"
 import { isEqual } from "lodash"
 import {
   useParams,
@@ -30,6 +32,11 @@ type Props = {
   /** Pre-order disclosure block (BRD §6.3), server-rendered and injected
    *  like sidebarBanner. Null for ordinary stock. */
   preorderPanel?: React.ReactNode
+  /** Commerce type for this listing. Badged beside the title so the type is
+   *  visible in the buy box itself, not only in the disclosure further down
+   *  the page — someone who adds to cart from the top of a product page
+   *  should not have to scroll to learn it ships from abroad. */
+  policy?: ListingPolicy | null
 }
 
 const optionsAsKeymap = (
@@ -46,6 +53,7 @@ export default function ProductDetailView({
   disabled,
   sidebarBanner,
   preorderPanel,
+  policy,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -166,6 +174,8 @@ export default function ProductDetailView({
         >
           {product.title}
         </h1>
+
+        <CommerceTypeBadge policy={policy} size="md" className="self-start" />
 
         <div className="text-2xl font-bold">
           <ProductPrice product={product} variant={selectedVariant} />

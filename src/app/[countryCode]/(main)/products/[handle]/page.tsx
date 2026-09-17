@@ -4,6 +4,7 @@ import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import PreorderPanel from "@modules/products/components/preorder-panel"
+import PreorderNotice from "@modules/products/components/preorder-panel/notice"
 import { getPreorderOffer } from "@lib/data/preorder"
 import { listListingPolicies } from "@lib/data/listing-policy"
 import { policyForProduct, targetsFromProducts } from "@lib/util/fulfilment-groups"
@@ -136,10 +137,23 @@ export default async function ProductPage(props: Props) {
   )
   const policy = policyForProduct(pricedProduct as any, policies)
 
+  const isPreorder = policy?.commerce_type === "preorder"
+
   const preorderOffer =
-    policy?.commerce_type === "preorder" && policy.reference_id
+    isPreorder && policy.reference_id
       ? await getPreorderOffer(policy.reference_id)
       : null
+
+  // The block appears whenever the LISTING is a pre-order, not only when the
+  // offer happens to load. getPreorderOffer swallows every failure into null,
+  // so a 404, an expired offer or one slow request used to remove the
+  // disclosure entirely — leaving an ordinary buy box on an item that ships
+  // from the US in weeks. The detail degrades; the fact does not.
+  const preorderPanel = !isPreorder ? null : preorderOffer ? (
+    <PreorderPanel offer={preorderOffer} />
+  ) : (
+    <PreorderNotice label={policy?.label} />
+  )
 
   return (
     <ProductTemplate
@@ -147,9 +161,8 @@ export default async function ProductPage(props: Props) {
       region={region}
       countryCode={params.countryCode}
       images={images}
-      preorderPanel={
-        preorderOffer ? <PreorderPanel offer={preorderOffer} /> : null
-      }
+      policy={policy}
+      preorderPanel={preorderPanel}
     />
   )
 }

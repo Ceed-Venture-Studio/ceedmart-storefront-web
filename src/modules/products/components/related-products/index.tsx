@@ -1,6 +1,11 @@
 import { listProducts } from "@lib/data/products"
 import { retrieveCart } from "@lib/data/cart"
 import { getRegion } from "@lib/data/regions"
+import { listListingPolicies } from "@lib/data/listing-policy"
+import {
+  policyForProduct,
+  targetsFromProducts,
+} from "@lib/util/fulfilment-groups"
 import { HttpTypes } from "@medusajs/types"
 import Product from "../product-preview"
 
@@ -49,6 +54,11 @@ export default async function RelatedProducts({
 
   const cart = await retrieveCart().catch(() => null)
 
+  // Related products are a listing like any other: a pre-order surfaced here
+  // has to say so, or the rail becomes the one route to a US pre-order that
+  // still looks like local stock.
+  const policies = await listListingPolicies(targetsFromProducts(products as any))
+
   return (
     <div className="product-page-constraint">
       <div className="flex flex-col items-center text-center mb-16">
@@ -66,6 +76,7 @@ export default async function RelatedProducts({
             <Product
               region={region}
               product={product}
+              policy={policyForProduct(product as any, policies)}
               cartLineItems={cart?.items ?? []}
             />
           </li>

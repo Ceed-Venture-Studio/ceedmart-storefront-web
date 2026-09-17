@@ -15,6 +15,8 @@ import SectionGrid from "@modules/home/components/section-grid"
 import BulkExplainer from "@modules/home/components/bulk-explainer"
 import SolarFeature from "@modules/home/components/solar-feature"
 import ProductCarousel from "@modules/home/components/product-carousel"
+import { listListingPolicies } from "@lib/data/listing-policy"
+import { targetsFromProducts } from "@lib/util/fulfilment-groups"
 
 export const metadata: Metadata = {
   title: "CeedMart — Wholesale & Bulk Supply in Nigeria",
@@ -68,6 +70,12 @@ export default async function Home(props: Props) {
   const newestProducts = newest?.response.products ?? []
   const featuredProducts = featured?.response.products ?? []
 
+  // Both home rails in one lookup — the two lists overlap, and
+  // listListingPolicies de-duplicates by variant id anyway.
+  const railPolicies = await listListingPolicies(
+    targetsFromProducts([...newestProducts, ...featuredProducts] as any)
+  )
+
   return (
     <div className="w-full flex flex-col">
       <BulkHero />
@@ -94,6 +102,7 @@ export default async function Home(props: Props) {
             products={newestProducts}
             region={region}
             cartLineItems={cart?.items ?? []}
+            policies={railPolicies}
           />
         )}
 
@@ -105,6 +114,7 @@ export default async function Home(props: Props) {
             products={featuredProducts}
             region={region}
             cartLineItems={cart?.items ?? []}
+            policies={railPolicies}
           />
         )}
 

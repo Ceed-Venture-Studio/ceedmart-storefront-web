@@ -5,6 +5,8 @@ import { HttpTypes } from "@medusajs/types"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ProductCard from "@modules/products/components/product-card"
+import type { PolicyMap } from "@lib/data/listing-policy"
+import { policyForProduct } from "@lib/util/fulfilment-groups"
 
 /**
  * Single-row, horizontally scrollable product rail.
@@ -20,6 +22,7 @@ export default function ProductCarousel({
   products,
   region,
   cartLineItems,
+  policies,
 }: {
   title: string
   href: string
@@ -27,6 +30,9 @@ export default function ProductCarousel({
   products: HttpTypes.StoreProduct[]
   region: HttpTypes.StoreRegion
   cartLineItems?: HttpTypes.StoreCartLineItem[]
+  /** Commerce types for these products, resolved by the server component
+   *  that owns the rail. Absent means every card renders unbadged. */
+  policies?: PolicyMap
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -133,6 +139,7 @@ export default function ProductCarousel({
               product={product}
               region={region}
               cartLineItems={cartLineItems}
+              policy={policies ? policyForProduct(product as any, policies) : null}
             />
           </div>
         ))}

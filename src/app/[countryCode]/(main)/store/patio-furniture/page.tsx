@@ -17,6 +17,8 @@ import PaginatedProducts from "@modules/store/templates/paginated-products"
 import SearchBar from "@modules/home/components/search-bar"
 import CategoriesCarousel from "@modules/home/components/categories-carousel"
 import InfiniteProductGrid from "@modules/home/components/infinite-product-grid"
+import { listListingPolicies } from "@lib/data/listing-policy"
+import { targetsFromProducts } from "@lib/util/fulfilment-groups"
 import PromoBannerCarousel from "@modules/banners/components/promo-banner-carousel"
 
 export const metadata: Metadata = {
@@ -126,6 +128,12 @@ export default async function PatioFurniturePage(props: Params) {
   const { products } = productsData.response
   const hasMore = productsData.nextPage !== null
 
+  // Commerce type for the first page, resolved server-side so a pre-order is
+  // badged in the initial HTML. Later pages fetch their own inside the grid.
+  const initialPolicies = await listListingPolicies(
+    targetsFromProducts(products as any)
+  )
+
   if (!region) return null
 
   return (
@@ -192,6 +200,7 @@ export default async function PatioFurniturePage(props: Params) {
             All Patio Furniture
           </h2>
           <InfiniteProductGrid
+            initialPolicies={initialPolicies}
             initialProducts={products}
             initialHasMore={hasMore}
             countryCode={countryCode}

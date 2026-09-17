@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { HttpTypes } from "@medusajs/types"
 import { listProducts } from "@lib/data/products"
+import { listListingPolicies, type PolicyMap } from "@lib/data/listing-policy"
+import {
+  policyForProduct,
+  targetsFromProducts,
+} from "@lib/util/fulfilment-groups"
 import ProductCard from "@modules/products/components/product-card"
 
 const PRODUCT_LIMIT = 12
@@ -14,6 +19,7 @@ export default function InfiniteProductGrid({
   region,
   queryParams,
   cartLineItems,
+  initialPolicies,
 }: {
   initialProducts: HttpTypes.StoreProduct[]
   initialHasMore: boolean
@@ -21,8 +27,15 @@ export default function InfiniteProductGrid({
   region: HttpTypes.StoreRegion
   queryParams?: Record<string, any>
   cartLineItems?: HttpTypes.StoreCartLineItem[]
+  /** Commerce types for the first page, resolved on the server so a
+   *  pre-order is badged in the initial HTML rather than popping in. */
+  initialPolicies?: PolicyMap
 }) {
   const [products, setProducts] = useState(initialProducts)
+  // Grows with the product list. Pages loaded on scroll need their own
+  // lookup — without this, everything past the first twelve would lose its
+  // badge purely by virtue of how far the shopper scrolled.
+  const [policies, setPolicies] = useState<PolicyMap>(initialPolicies ?? {})
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(initialHasMore)
   const [isLoading, setIsLoading] = useState(false)
@@ -43,6 +56,18 @@ export default function InfiniteProductGrid({
       setProducts((prev) => [...prev, ...response.products])
       setPage(nextPage)
       setHasMore(morePages !== null)
+
+      // Badge the new arrivals too. Failure here leaves them unbadged rather
+      // than blocking the page, which is the same trade listListingPolicies
+      // already makes.
+      try {
+        const next = await listListingPolicies(
+          targetsFromProducts(response.products as any)
+        )
+        setPolicies((prev) => ({ ...prev, ...next }))
+      } catch {
+        // keep what we have
+      }
     } catch (e) {
       console.error("Failed to load more products", e)
     } finally {
@@ -76,6 +101,7 @@ export default function InfiniteProductGrid({
               product={product}
               region={region}
               cartLineItems={cartLineItems}
+              policy={policyForProduct(product as any, policies)}
             />
           </li>
         ))}
