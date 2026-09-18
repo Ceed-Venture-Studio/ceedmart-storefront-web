@@ -24,10 +24,17 @@ const ForgotPassword = ({ setCurrentView }: Props) => {
       data-testid="forgot-password-page"
     >
       <h1 className="text-large-semi uppercase mb-6">Reset your password</h1>
-      <p className="text-center text-base-regular text-ui-fg-base mb-8">
-        Tell us the email you signed up with and we&apos;ll send a link to set
-        a new password.
-      </p>
+      {/* Sits inside the same swap as the form. It was rendered
+          unconditionally, so after submitting, the instruction to enter an
+          email stayed on screen directly above the confirmation that the
+          email had been sent — telling the customer to do the thing they
+          had just done. */}
+      {!state?.ok && (
+        <p className="text-center text-base-regular text-ui-fg-base mb-8">
+          Tell us the email you signed up with and we&apos;ll send a link to
+          set a new password.
+        </p>
+      )}
 
       {/* The confirmation replaces the form rather than sitting under it.
           Leaving the form up invites a second submission from someone who is

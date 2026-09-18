@@ -1,9 +1,11 @@
+"use client"
+
 import { login } from "@lib/data/customer"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { useSearchParams } from "next/navigation"
 
 type Props = {
@@ -12,6 +14,16 @@ type Props = {
 
 const Login = ({ setCurrentView }: Props) => {
   const [message, formAction, isPending] = useActionState(login, null)
+
+  // Controlled, solely so a rejected sign-in does not wipe it.
+  //
+  // React 19 resets an uncontrolled <form action={...}> once the action
+  // settles — including when it settles on an error. Getting the password
+  // wrong therefore cleared the email too, and the customer retyped an
+  // address they had already entered correctly just to try again. A
+  // controlled value survives that reset; the password is left uncontrolled
+  // on purpose, so it clears and the next attempt starts from empty.
+  const [email, setEmail] = useState("")
   // Set when the customer was sent here from somewhere that needed them
   // signed in — checkout, today. Validated server-side before it is used.
   const redirectTo = useSearchParams().get("redirect")
@@ -37,6 +49,8 @@ const Login = ({ setCurrentView }: Props) => {
             title="Enter a valid email address."
             autoComplete="email"
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             data-testid="email-input"
           />
           <Input
