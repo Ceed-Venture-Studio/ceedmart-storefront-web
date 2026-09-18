@@ -186,9 +186,6 @@ const Payment = ({
       // two real payments, and left the customer watching a page that could
       // never finish because the session it polled had never been paid.
       //
-      // Only a definite "yes" stops us. An unreachable Pulse answers
-      // `unknown`, and we carry on rather than stranding someone who has not
-      // paid at all.
       const alreadyPaid = await isCartPaid()
       if (alreadyPaid.paid) {
         if (paymentTab && !paymentTab.closed) {
@@ -198,11 +195,59 @@ const Payment = ({
         return
       }
 
+      // "unknown" means we could not reach Pulse — it does NOT mean unpaid.
+      //
+      // This used to carry on regardless, reasoning that an unreachable
+      // Pulse should not strand someone who has not paid. But carrying on
+      // means createPaymentSessions, and that DELETES the existing session
+      // — so the one case we cannot rule out, a payment already made, is
+      // the case we destroyed the evidence of.
+      //
+      // It is not hypothetical. On 18 Sep a customer paid ₦42,500 and tried
+      // five times in fourteen minutes; every check answered "unknown"
+      // because the Pulse API key had stopped authenticating, and every
+      // attempt discarded the session before it. Four payment ids that only
+      // Pulse can now account for.
+      //
+      // So when we cannot tell, we reuse the session rather than replace it.
+      // A customer who has already paid keeps the record of it; one who has
+      // not is returned to the same gateway page and can still pay. Nobody
+      // is stranded, and nothing is thrown away.
+      const reusableUrl = activeSession?.data?.checkout_url as
+        | string
+        | undefined
+
+      if (alreadyPaid.reason === "unknown" && activeSession) {
+        if (reusableUrl) {
+          setCheckoutUrl(reusableUrl)
+          if (paymentTab && !paymentTab.closed) {
+            paymentTab.location.href = reusableUrl
+          } else {
+            window.location.href = reusableUrl
+          }
+          return
+        }
+
+        // A session we can neither verify nor resume. Replacing it could
+        // discard a real payment, so we stop and hand this to a human
+        // instead of guessing with the customer's money.
+        paymentTab?.close()
+        setError(
+          "We can't confirm the status of your payment right now. Please don't pay again — " +
+            "contact us on WhatsApp and we'll check and complete your order."
+        )
+        return
+      }
+
       const shouldInputCard =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
-      // Pulse Pay: always create a fresh session, then hand the customer to
-      // the gateway in a SEPARATE tab so the cart and this page stay put.
+      // Pulse Pay: create a fresh session, then hand the customer to the
+      // gateway in a SEPARATE tab so the cart and this page stay put.
+      //
+      // Only reached when Pulse gave a definite "not paid", or when there is
+      // no session to lose — the unverifiable case returned above rather
+      // than replacing anything.
       if (isPulsePay(selectedPaymentMethod)) {
         const result = await initiatePaymentSession(cart, {
           provider_id: selectedPaymentMethod,
