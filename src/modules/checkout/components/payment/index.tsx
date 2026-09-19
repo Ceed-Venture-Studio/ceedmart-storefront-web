@@ -251,7 +251,18 @@ const Payment = ({
       if (isPulsePay(selectedPaymentMethod)) {
         const result = await initiatePaymentSession(cart, {
           provider_id: selectedPaymentMethod,
-          ...(pulseChannel ? { data: { channel: pulseChannel } } : {}),
+          data: {
+            ...(pulseChannel ? { channel: pulseChannel } : {}),
+            // Where to send them back to. ceedmart.com and www.ceedmart.com
+            // both serve this app, and a cart cookie set on one is not sent
+            // to the other — so a redirect built from a single configured
+            // origin returned half our customers to a host where they had no
+            // cart, and the review step 404'd with the money already taken.
+            // Only the host is taken from this, and only when it matches the
+            // configured domain.
+            origin:
+              typeof window !== "undefined" ? window.location.origin : "",
+          },
         } as any)
 
         if (result?.checkout_url) {
