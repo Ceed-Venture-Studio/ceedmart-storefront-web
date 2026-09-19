@@ -85,10 +85,10 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                   autoFocus={false}
                   data-testid="discount-input"
                 />
-                <SubmitButton
-                  variant="secondary"
-                  data-testid="discount-apply-button"
-                >
+                {/* Primary, like every other button that commits something.
+                    It sits beside "Go to checkout" and should read as the
+                    same kind of control — navy with white text. */}
+                <SubmitButton data-testid="discount-apply-button">
                   Apply
                 </SubmitButton>
               </div>

@@ -40,7 +40,20 @@ export function SubmitButton({
   return (
     <Button
       size="large"
-      className={`bg-ceedmart-navy hover:bg-ceedmart-navy-light ${className || ""}`}
+      // Brand navy belongs to the PRIMARY variant only.
+      //
+      // This used to be applied unconditionally, which quietly broke every
+      // other variant: `secondary` ships dark text because it expects a
+      // light background, so forcing navy underneath produced #18181B on
+      // #05007F — a button whose label was, for practical purposes,
+      // invisible. The promo "Apply" button shipped that way.
+      //
+      // Each variant now keeps the foreground it was designed with.
+      className={`${
+        (variant || "primary") === "primary"
+          ? "bg-ceedmart-navy hover:bg-ceedmart-navy-light"
+          : ""
+      } ${className || ""}`}
       type="submit"
       isLoading={busy}
       // Button already sets disabled when isLoading, but say it out loud:
