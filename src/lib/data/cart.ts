@@ -469,6 +469,30 @@ export async function placeOrder(cartId?: string) {
     ...(await getAuthHeaders()),
   }
 
+  // A cart that is ALREADY completed is not an error worth crashing on.
+  //
+  // The order exists — placed by the webhook, by another tab, or by the poll
+  // that runs on return from the gateway. But completing it a second time
+  // throws "Cart ... is already completed", which reached the customer as an
+  // opaque Server Components crash on the page that should have been showing
+  // them their order.
+  //
+  // It happens by design, not by accident: the return-from-gateway effect
+  // retries, and two of those can overlap. Checking first is cheaper than
+  // recovering afterwards, and the answer is on the cart.
+  const existing = await retrieveCart(id).catch(() => null)
+  // completed_at is absent from StoreCart in the SDK types but present on
+  // the wire — the store cart endpoint returns it, and it is the only
+  // thing that distinguishes a placed order from a live cart here.
+  if ((existing as any)?.completed_at) {
+    const cc = existing?.shipping_address?.country_code?.toLowerCase() || "ng"
+    await removeCartId()
+    // Their order is placed but we cannot name it from here: a guest has no
+    // session to look it up with. Track finds it by email or order number,
+    // which is a real answer rather than a guessed order id.
+    redirect(`/${cc}/track?placed=1`)
+  }
+
   const cartRes = await sdk.store.cart
     .complete(id, {}, headers)
     .then(async (cartRes) => {
@@ -476,7 +500,17 @@ export async function placeOrder(cartId?: string) {
       revalidateTag(cartCacheTag)
       return cartRes
     })
-    .catch(medusaError)
+    .catch(async (e: any) => {
+      // Lost the race: something completed the cart between the check above
+      // and this call. Same destination, same reasoning.
+      if (/already completed/i.test(String(e?.message ?? e))) {
+        const cc =
+          existing?.shipping_address?.country_code?.toLowerCase() || "ng"
+        await removeCartId()
+        redirect(`/${cc}/track?placed=1`)
+      }
+      return medusaError(e)
+    })
 
   if (cartRes?.type === "order") {
     const countryCode =
