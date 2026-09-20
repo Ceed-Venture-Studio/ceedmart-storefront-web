@@ -2,7 +2,7 @@
 
 import { isManual, isPulsePay, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
-import { getCartPaymentStatus } from "@lib/data/payment"
+import { getCartPaymentStatus, isCartPaid } from "@lib/data/payment"
 import { HttpTypes } from "@medusajs/types"
 import { Button, Text } from "@medusajs/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
@@ -292,9 +292,27 @@ const PulsePayButton = ({
         const status = await getCartPaymentStatus()
         if (!cancelled && isPaid(status)) {
           setPaid(true)
+          return
         }
       } catch {
         // A failed poll is not worth showing anyone; the next one runs.
+      }
+
+      // Our session only turns `authorized` when the webhook confirms it, so
+      // polling it alone means waiting on a delivery that may be late, or
+      // may never come — a misconfigured webhook left this page spinning
+      // forever on a payment that had actually succeeded.
+      //
+      // Pulse knows regardless of whether it managed to tell us, so ask it
+      // directly too. Only a definite yes counts; "unknown" is a failed
+      // lookup and must not be read as paid.
+      try {
+        const truth = await isCartPaid()
+        if (!cancelled && truth.paid) {
+          setPaid(true)
+        }
+      } catch {
+        // Same again: the next tick tries.
       }
     }
     const timer = setInterval(tick, 4000)

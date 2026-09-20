@@ -42,8 +42,8 @@ const Payment = ({
   const router = useRouter()
   const pathname = usePathname()
 
-  // Kept after the tab opens so a customer who closes it, or whose browser
-  // blocked it, has a way back to the same payment rather than starting over.
+  // Kept so a customer whose redirect was blocked or slow has a link to the
+  // same payment rather than starting over.
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
 
   // The gateways this shop can actually charge with, straight from Pulse.
@@ -152,29 +152,18 @@ const Payment = ({
     setIsLoading(true)
     setError(null)
 
-    // Reserve the tab NOW, in the synchronous part of the click handler.
-    // Creating the payment session takes seconds, and a window.open() after
-    // an await has lost the user gesture — every browser blocks it. Opening
-    // first and pointing it at the URL afterwards is the only reliable way.
-    const paymentTab = isPulsePay(selectedPaymentMethod)
-      ? window.open("", "_blank")
-      : null
-
-    // Say something while the tab waits. Without this it is several seconds
-    // of blank white, which reads as a broken link.
-    if (paymentTab) {
-      try {
-        paymentTab.document.write(
-          `<!doctype html><meta charset="utf-8"><title>Opening secure payment…</title>` +
-            `<div style="font:16px/1.6 system-ui,sans-serif;color:#05007F;` +
-            `display:flex;align-items:center;justify-content:center;height:90vh">` +
-            `Opening secure payment…</div>`
-        )
-      } catch {
-        // Some browsers disallow writing into a fresh tab. Harmless — the
-        // customer just sees a blank tab a moment longer.
-      }
-    }
+    // Same tab, deliberately.
+    //
+    // The gateway used to open in a second tab so this page could stay put.
+    // But the gateway REDIRECTS back when it is done, and it redirects the
+    // tab it is in — so the customer ended up with two checkouts: a new tab
+    // holding the real one, and the original still sitting on the payment
+    // step behind it. Two pages, one cart, and whichever they looked at
+    // first was usually the stale one.
+    //
+    // A redirect flow only needs one page. Navigating away is safe here:
+    // the cart lives on the server, and coming back restores the step from
+    // the URL.
 
     try {
       // Never replace a session that has already been paid.
@@ -188,9 +177,6 @@ const Payment = ({
       //
       const alreadyPaid = await isCartPaid()
       if (alreadyPaid.paid) {
-        if (paymentTab && !paymentTab.closed) {
-          paymentTab.close()
-        }
         router.push(pathname + "?" + createQueryString("step", "review"))
         return
       }
@@ -220,18 +206,13 @@ const Payment = ({
       if (alreadyPaid.reason === "unknown" && activeSession) {
         if (reusableUrl) {
           setCheckoutUrl(reusableUrl)
-          if (paymentTab && !paymentTab.closed) {
-            paymentTab.location.href = reusableUrl
-          } else {
-            window.location.href = reusableUrl
-          }
+          window.location.href = reusableUrl
           return
         }
 
         // A session we can neither verify nor resume. Replacing it could
         // discard a real payment, so we stop and hand this to a human
         // instead of guessing with the customer's money.
-        paymentTab?.close()
         setError(
           "We can't confirm the status of your payment right now. Please don't pay again — " +
             "contact us on WhatsApp and we'll check and complete your order."
@@ -266,20 +247,14 @@ const Payment = ({
         } as any)
 
         if (result?.checkout_url) {
+          // Kept in state as well as navigated to: if the browser blocks or
+          // delays the assignment, the notice below gives them a link they
+          // can press themselves rather than a page that looks stuck.
           setCheckoutUrl(result.checkout_url)
-
-          if (paymentTab && !paymentTab.closed) {
-            paymentTab.location.href = result.checkout_url
-          } else {
-            // Blocked, or closed before we got the URL. Falling back to this
-            // tab is worse than the intent but far better than a customer
-            // who clicked Pay and got nothing.
-            window.location.href = result.checkout_url
-          }
+          window.location.href = result.checkout_url
           return
         }
 
-        paymentTab?.close()
         setError("Failed to initiate payment. Please try again.")
         return
       }
@@ -302,7 +277,6 @@ const Payment = ({
         )
       }
     } catch (err: any) {
-      paymentTab?.close()
       setError(err.message)
     } finally {
       setIsLoading(false)
@@ -492,28 +466,24 @@ const Payment = ({
                 : "Continue to review"}
           </Button>
 
-          {/* The payment is happening in another tab, so this page has to
-              account for itself: say where they went, and give them a way
-              back if that tab was blocked or closed. Without this the page
-              just sits there looking like the button did nothing. */}
+          {/* Only seen if the navigation has not taken effect yet, or the
+              browser refused it. Without this the page looks like the button
+              did nothing. */}
           {checkoutUrl && (
             <div
               className="mt-4 rounded-md border border-ui-border-base bg-ui-bg-subtle p-4"
               data-testid="payment-tab-notice"
             >
               <Text className="txt-medium text-ui-fg-base">
-                {gatewayName ?? "The payment page"} is open in another tab.
-                Finish paying there and you&apos;ll be brought back to confirm
-                your order.
+                Taking you to {gatewayName ?? "the payment page"}. You&apos;ll
+                come straight back here once you&apos;ve paid.
               </Text>
               <a
                 href={checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="txt-medium-plus text-ceedmart-navy underline mt-2 inline-block"
                 data-testid="reopen-payment-link"
               >
-                Tab didn&apos;t open? Continue to {gatewayName ?? "payment"}
+                Not redirected? Continue to {gatewayName ?? "payment"}
               </a>
             </div>
           )}
