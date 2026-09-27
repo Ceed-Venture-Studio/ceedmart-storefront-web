@@ -120,6 +120,16 @@ export default function ProductCard({
   const hasOptions =
     (product.options?.length ?? 0) > 0 && (product.variants?.length ?? 0) > 1
   const isValidVariant = !!selectedVariant
+  // Stock on the shelf in Nigeria has already made the trip, so a pre-order
+  // listing that holds real inventory is not shown as "Ships from the US".
+  // Checked against tracked quantity rather than `inStock`, which is also
+  // true for backorderable variants that have nothing on hand.
+  const hasStockOnHand = (
+    selectedVariant ? [selectedVariant] : product.variants ?? []
+  ).some((v) => v.manage_inventory && (v.inventory_quantity ?? 0) > 0)
+  const shownPolicy =
+    policy?.commerce_type === "preorder" && hasStockOnHand ? null : policy
+
   // Compact cards have no room for option pickers, so a product that needs
   // one sends the shopper to its page to choose instead.
   const needsDetails = compact && hasOptions
@@ -260,8 +270,16 @@ export default function ProductCard({
     >
       <LocalizedClientLink
         href={`/products/${product.handle}`}
-        className="block bg-grey-5"
+        className="relative block bg-grey-5"
       >
+        {/* Compact cards float the badge over the image so it costs no
+            height; it is still the first thing read on the card. */}
+        {compact && shownPolicy && (
+          <CommerceTypeBadge
+            policy={shownPolicy}
+            className="absolute top-2 left-2 z-10 shadow-sm"
+          />
+        )}
         <Thumbnail
           thumbnail={product.thumbnail}
           images={product.images}
@@ -279,7 +297,9 @@ export default function ProductCard({
         {/* Above the title, so the fulfilment type is read before the
             product name — §5.1 requires the shopper know what kind of
             purchase this is before they engage with it. */}
-        {policy && <CommerceTypeBadge policy={policy} className="self-start" />}
+        {!compact && shownPolicy && (
+          <CommerceTypeBadge policy={shownPolicy} className="self-start" />
+        )}
 
         <LocalizedClientLink
           href={`/products/${product.handle}`}

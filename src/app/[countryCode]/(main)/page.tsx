@@ -6,9 +6,11 @@ import { retrieveCart } from "@lib/data/cart"
 import { getStoreMenu } from "@lib/data/menu"
 import { getProductTagIdByValue } from "@lib/data/product-tags"
 import { listCategories, subtreeCategoryIds } from "@lib/data/categories"
+import { listCollections } from "@lib/data/collections"
 import {
   HOME_RAIL_LIMIT,
   FEATURED_PRODUCT_TAG,
+  GROCERIES_COLLECTION_HANDLE,
   TECH_ROOT_CATEGORY_IDS,
   WHOLEFOODS_COLLECTION_IDS,
 } from "@lib/data/store-config"
@@ -34,18 +36,24 @@ type Props = {
 export default async function Home(props: Props) {
   const { countryCode } = await props.params
 
-  const [sections, region, cart, featuredTagId, categories] =
+  const [sections, region, cart, featuredTagId, categories, groceries] =
     await Promise.all([
       getStoreMenu(),
       getRegion(countryCode),
       retrieveCart().catch(() => null),
       getProductTagIdByValue(FEATURED_PRODUCT_TAG),
       listCategories().catch(() => []),
+      // By handle, not id: the collection is admin-created and its id
+      // differs between environments.
+      listCollections({ handle: GROCERIES_COLLECTION_HANDLE, fields: "id" })
+        .then(({ collections }) => collections.map((c) => c.id))
+        .catch(() => [] as string[]),
     ])
 
   // Three independent rails.
   //
-  // New stock is split into Whole Foods and Technology, each newest-first —
+  // New stock is split into Whole Foods (with Groceries) and Technology,
+  // each newest-first —
   // `order` matters because the API defaults to oldest-first, which once
   // showed four-month-old stock under a "New in stock" heading.
   //
@@ -59,7 +67,7 @@ export default async function Home(props: Props) {
     }).catch(() => null)
 
   const [wholefoods, tech, featured] = await Promise.all([
-    newest({ collection_id: WHOLEFOODS_COLLECTION_IDS }),
+    newest({ collection_id: [...WHOLEFOODS_COLLECTION_IDS, ...groceries] }),
     newest({
       category_id: subtreeCategoryIds(categories, TECH_ROOT_CATEGORY_IDS),
     }),
