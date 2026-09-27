@@ -5,9 +5,12 @@ import { getRegion } from "@lib/data/regions"
 import { retrieveCart } from "@lib/data/cart"
 import { getStoreMenu } from "@lib/data/menu"
 import { getProductTagIdByValue } from "@lib/data/product-tags"
+import { listCategories, subtreeCategoryIds } from "@lib/data/categories"
 import {
   HOME_RAIL_LIMIT,
   FEATURED_PRODUCT_TAG,
+  TECH_ROOT_CATEGORY_IDS,
+  WHOLEFOODS_COLLECTION_IDS,
 } from "@lib/data/store-config"
 import BannerSlot from "@modules/banners/components/banner-slot"
 import BulkHero from "@modules/home/components/bulk-hero"
@@ -31,50 +34,70 @@ type Props = {
 export default async function Home(props: Props) {
   const { countryCode } = await props.params
 
-  const [sections, region, cart, featuredTagId] = await Promise.all([
-    getStoreMenu(),
-    getRegion(countryCode),
-    retrieveCart().catch(() => null),
-    getProductTagIdByValue(FEATURED_PRODUCT_TAG),
-  ])
+  const [sections, region, cart, featuredTagId, categories] =
+    await Promise.all([
+      getStoreMenu(),
+      getRegion(countryCode),
+      retrieveCart().catch(() => null),
+      getProductTagIdByValue(FEATURED_PRODUCT_TAG),
+      listCategories().catch(() => []),
+    ])
 
-  // Two independent rails.
+  // Three independent rails.
   //
-  // "New in stock" is always newest-first — `order` matters because the API
-  // defaults to oldest-first, which previously showed four-month-old stock
-  // under a "New in stock" heading.
+  // New stock is split into Whole Foods and Technology, each newest-first —
+  // `order` matters because the API defaults to oldest-first, which once
+  // showed four-month-old stock under a "New in stock" heading.
   //
   // "Featured" is curated by tag and simply does not render when the tag is
-  // unset, absent, or carries no live product. With two rows there is no
-  // longer any need to fall back — the newest rail already guarantees the
-  // page is never empty.
-  const [newest, featured] = await Promise.all([
+  // unset, absent, or carries no live product.
+  const newest = (filter: Record<string, string[]>) =>
     listProducts({
       pageParam: 1,
       countryCode,
-      queryParams: { limit: HOME_RAIL_LIMIT, order: "-created_at" },
-    }).catch(() => null),
+      queryParams: { limit: HOME_RAIL_LIMIT, order: "-created_at", ...filter },
+    }).catch(() => null)
+
+  const [wholefoods, tech, featured] = await Promise.all([
+    newest({ collection_id: WHOLEFOODS_COLLECTION_IDS }),
+    newest({
+      category_id: subtreeCategoryIds(categories, TECH_ROOT_CATEGORY_IDS),
+    }),
     featuredTagId
-      ? listProducts({
-          pageParam: 1,
-          countryCode,
-          queryParams: {
-            limit: HOME_RAIL_LIMIT,
-            order: "-created_at",
-            tag_id: [featuredTagId],
-          },
-        }).catch(() => null)
+      ? newest({ tag_id: [featuredTagId] })
       : Promise.resolve(null),
   ])
 
-  const newestProducts = newest?.response.products ?? []
+  const wholefoodsProducts = wholefoods?.response.products ?? []
+  const techProducts = tech?.response.products ?? []
   const featuredProducts = featured?.response.products ?? []
 
-  // Both home rails in one lookup — the two lists overlap, and
+  // All home rails in one lookup — the lists can overlap, and
   // listListingPolicies de-duplicates by variant id anyway.
   const railPolicies = await listListingPolicies(
-    targetsFromProducts([...newestProducts, ...featuredProducts] as any)
+    targetsFromProducts(
+      [...wholefoodsProducts, ...techProducts, ...featuredProducts] as any
+    )
   )
+
+  // Side by side from `small` up. Each panel takes its share of the row, so
+  // when one range has no new stock the other fills the width alone.
+  const newStockPanels = [
+    {
+      title: "New in Whole Foods",
+      href: "/store/wholefoods",
+      products: wholefoodsProducts,
+      panelClassName: "bg-wholefoods-bg border-wholefoods/20",
+      titleClassName: "text-lg small:text-xl font-bold text-wholefoods-dark",
+    },
+    {
+      title: "New in Technology",
+      href: "/store",
+      products: techProducts,
+      panelClassName: "bg-grey-5 border-grey-15",
+      titleClassName: "text-lg small:text-xl font-bold text-ceedmart-navy",
+    },
+  ].filter((panel) => panel.products.length > 0)
 
   return (
     <div className="w-full flex flex-col">
@@ -94,16 +117,27 @@ export default async function Home(props: Props) {
 
         <BulkExplainer />
 
-        {region && (
-          <ProductCarousel
-            title="New in stock"
-            href="/store"
-            linkLabel="Explore more"
-            products={newestProducts}
-            region={region}
-            cartLineItems={cart?.items ?? []}
-            policies={railPolicies}
-          />
+        {region && newStockPanels.length > 0 && (
+          <div className="flex flex-col small:flex-row small:items-start gap-4">
+            {newStockPanels.map((panel) => (
+              <div
+                key={panel.href}
+                className={`flex-1 min-w-0 rounded-2xl border p-4 small:p-5 ${panel.panelClassName}`}
+              >
+                <ProductCarousel
+                  title={panel.title}
+                  titleClassName={panel.titleClassName}
+                  href={panel.href}
+                  linkLabel="View all"
+                  products={panel.products}
+                  region={region}
+                  cartLineItems={cart?.items ?? []}
+                  policies={railPolicies}
+                  compact
+                />
+              </div>
+            ))}
+          </div>
         )}
 
         {region && featuredTagId && (
@@ -115,6 +149,7 @@ export default async function Home(props: Props) {
             region={region}
             cartLineItems={cart?.items ?? []}
             policies={railPolicies}
+            compact
           />
         )}
 

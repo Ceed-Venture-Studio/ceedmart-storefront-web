@@ -36,6 +36,31 @@ export const listCategories = async (query?: Record<string, any>) => {
 }
 
 /**
+ * The given roots plus every descendant, from a flat category list.
+ *
+ * Medusa's product `category_id` filter is an exact match and does not walk
+ * the tree, so a filter meant to cover a section has to name every level.
+ */
+export const subtreeCategoryIds = (
+  categories: HttpTypes.StoreProductCategory[],
+  rootIds: string[]
+): string[] => {
+  const ids = new Set(rootIds)
+  let grew = true
+  while (grew) {
+    grew = false
+    for (const c of categories) {
+      const parentId = c.parent_category_id ?? c.parent_category?.id
+      if (parentId && ids.has(parentId) && !ids.has(c.id)) {
+        ids.add(c.id)
+        grew = true
+      }
+    }
+  }
+  return Array.from(ids)
+}
+
+/**
  * Number of products filed directly on each category, keyed by category id.
  *
  * Counts are tallied from a single slim product fetch (~31 KB for the current

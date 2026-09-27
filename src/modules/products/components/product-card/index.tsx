@@ -25,6 +25,9 @@ type Props = {
    *  auction listings fetch policies with listListingPolicies and pass the
    *  matching one down. */
   policy?: ListingPolicy | null
+  /** Smaller type, tighter padding and no delivery line, for dense rails
+   *  such as the home page's. Store grids keep the full-size card. */
+  compact?: boolean
 }
 
 type LineEntry = { lineId: string; quantity: number }
@@ -62,6 +65,7 @@ export default function ProductCard({
   isFeatured,
   cartLineItems,
   policy,
+  compact,
 }: Props) {
   const countryCode = useParams().countryCode as string
 
@@ -116,6 +120,9 @@ export default function ProductCard({
   const hasOptions =
     (product.options?.length ?? 0) > 0 && (product.variants?.length ?? 0) > 1
   const isValidVariant = !!selectedVariant
+  // Compact cards have no room for option pickers, so a product that needs
+  // one sends the shopper to its page to choose instead.
+  const needsDetails = compact && hasOptions
 
   const inStock = useMemo(() => {
     if (!selectedVariant) return false
@@ -263,7 +270,12 @@ export default function ProductCard({
         />
       </LocalizedClientLink>
 
-      <div className="flex flex-col gap-2 small:gap-2.5 p-3 small:p-4 flex-1">
+      <div
+        className={clx(
+          "flex flex-col flex-1",
+          compact ? "gap-1.5 p-2.5" : "gap-2 small:gap-2.5 p-3 small:p-4"
+        )}
+      >
         {/* Above the title, so the fulfilment type is read before the
             product name — §5.1 requires the shopper know what kind of
             purchase this is before they engage with it. */}
@@ -275,7 +287,12 @@ export default function ProductCard({
         >
           <h3
             data-testid="product-title"
-            className="text-sm small:text-base text-ui-fg-base leading-snug line-clamp-3 hover:text-ceedmart-navy transition-colors"
+            className={clx(
+              "text-ui-fg-base leading-snug hover:text-ceedmart-navy transition-colors",
+              compact
+                ? "text-xs small:text-sm line-clamp-2"
+                : "text-sm small:text-base line-clamp-3"
+            )}
           >
             {product.title}
           </h3>
@@ -286,7 +303,12 @@ export default function ProductCard({
             <span className="text-xs font-semibold text-ui-fg-base">
               {priceParts.currency}
             </span>
-            <span className="text-xl small:text-2xl font-bold text-ui-fg-base leading-none">
+            <span
+              className={clx(
+                "font-bold text-ui-fg-base leading-none",
+                compact ? "text-base small:text-lg" : "text-xl small:text-2xl"
+              )}
+            >
               {priceParts.whole}
             </span>
             <sup className="text-[10px] small:text-xs font-semibold text-ui-fg-base">
@@ -303,11 +325,13 @@ export default function ProductCard({
           </div>
         )}
 
-        <p className="text-xs text-grey-60">
-          {deliveryMsg ?? "Free delivery in Lagos & Port Harcourt"}
-        </p>
+        {!compact && (
+          <p className="text-xs text-grey-60">
+            {deliveryMsg ?? "Free delivery in Lagos & Port Harcourt"}
+          </p>
+        )}
 
-        {hasOptions && (product.options ?? []).length > 0 && (
+        {hasOptions && !compact && (product.options ?? []).length > 0 && (
           <div className="flex flex-col gap-2 mt-1">
             {(product.options ?? []).map((opt) => {
               const values =
@@ -325,7 +349,8 @@ export default function ProductCard({
                     value={selected}
                     onChange={(e) => setOption(opt.id, e.target.value)}
                     className={clx(
-                      "h-9 px-2 rounded-base border bg-white text-sm focus:outline-none focus:border-ceedmart-navy",
+                      "px-2 rounded-base border bg-white focus:outline-none focus:border-ceedmart-navy",
+                      compact ? "h-8 text-xs" : "h-9 text-sm",
                       selected
                         ? "border-ceedmart-navy text-ceedmart-navy"
                         : "border-grey-20 text-ui-fg-base"
@@ -353,7 +378,10 @@ export default function ProductCard({
               target="_blank"
               rel="noopener noreferrer"
               data-testid="preorder-whatsapp-button"
-              className="inline-flex items-center justify-center gap-1.5 w-full h-9 px-4 rounded-circle bg-[#25D366] hover:bg-[#1ebe57] text-white text-sm font-semibold transition-colors"
+              className={clx(
+                "inline-flex items-center justify-center gap-1.5 w-full rounded-circle bg-[#25D366] hover:bg-[#1ebe57] text-white font-semibold transition-colors",
+                compact ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm"
+              )}
             >
               <svg
                 viewBox="0 0 24 24"
@@ -363,14 +391,26 @@ export default function ProductCard({
               >
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
               </svg>
-              <span className="small:hidden">Order</span>
-              <span className="hidden small:inline">Order via WhatsApp</span>
+              {/* The long label does not fit a compact card at any width. */}
+              <span className={compact ? undefined : "small:hidden"}>Order</span>
+              {!compact && (
+                <span className="hidden small:inline">Order via WhatsApp</span>
+              )}
             </a>
+          ) : needsDetails ? (
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              data-testid="view-details-button"
+              className="inline-flex items-center justify-center w-full h-8 px-3 rounded-circle border border-ceedmart-navy text-ceedmart-navy text-xs font-semibold hover:bg-ceedmart-navy hover:text-white transition-colors"
+            >
+              View details
+            </LocalizedClientLink>
           ) : currentLine ? (
             <QuantityStepper
               quantity={currentLine.quantity}
               onChange={handleQuantityChange}
               loading={isPending}
+              compact={compact}
             />
           ) : (
             <button
@@ -379,7 +419,8 @@ export default function ProductCard({
               disabled={isPending || !isValidVariant || !inStock}
               data-testid="add-to-cart-button"
               className={clx(
-                "inline-flex items-center justify-center w-full h-9 px-4 rounded-circle text-sm font-semibold transition-all",
+                "inline-flex items-center justify-center w-full rounded-circle font-semibold transition-all",
+                compact ? "h-8 px-3 text-xs" : "h-9 px-4 text-sm",
                 "bg-ceedmart-gold text-ceedmart-navy hover:brightness-95",
                 "disabled:bg-grey-10 disabled:text-grey-50 disabled:cursor-not-allowed"
               )}
@@ -397,15 +438,20 @@ function QuantityStepper({
   quantity,
   onChange,
   loading,
+  compact,
 }: {
   quantity: number
   onChange: (next: number) => void
   loading: boolean
+  compact?: boolean
 }) {
   return (
     <div
       data-testid="qty-stepper"
-      className="inline-flex items-stretch h-9 rounded-circle bg-ceedmart-gold text-ceedmart-navy overflow-hidden w-full"
+      className={clx(
+        "inline-flex items-stretch rounded-circle bg-ceedmart-gold text-ceedmart-navy overflow-hidden w-full",
+        compact ? "h-8" : "h-9"
+      )}
     >
       <button
         type="button"

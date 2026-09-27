@@ -100,6 +100,20 @@ export const POWER_SOLUTIONS_COLLECTION_HANDLE = "power-solutions"
 // guarantees the page is never left empty.
 export const FEATURED_PRODUCT_TAG = process.env.FEATURED_PRODUCT_TAG || "Featured"
 
+// ─── Home page "new in stock" panels ────────────────────────────────────
+//
+// The home page splits new stock into Whole Foods (by collection, the same
+// filter /store/wholefoods uses) and Technology. Technology has no collection
+// of its own, so it is these category roots plus every descendant, resolved
+// at request time. Categories reach more of the tech catalogue than the
+// Solar/Power/CCTV collections do, and Computer & Accessories has no
+// collection at all.
+export const TECH_ROOT_CATEGORY_IDS = [
+  ...SOLAR_CATEGORY_IDS,
+  CCTV_CATEGORY_ID,
+  COMPUTER_CATEGORY_ID,
+]
+
 /** Products loaded into each home page rail. Rails scroll horizontally, so
  *  this is how far a shopper can scroll before "view more" takes over. */
 export const HOME_RAIL_LIMIT = 12

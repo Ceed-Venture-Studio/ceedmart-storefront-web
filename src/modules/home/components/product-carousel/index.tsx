@@ -23,6 +23,8 @@ export default function ProductCarousel({
   region,
   cartLineItems,
   policies,
+  compact,
+  titleClassName,
 }: {
   title: string
   href: string
@@ -33,6 +35,11 @@ export default function ProductCarousel({
   /** Commerce types for these products, resolved by the server component
    *  that owns the rail. Absent means every card renders unbadged. */
   policies?: PolicyMap
+  /** Fixed-width, smaller cards, so a wider rail fits more of them rather
+   *  than stretching each one. */
+  compact?: boolean
+  /** Overrides the section-scale heading, e.g. inside a smaller panel. */
+  titleClassName?: string
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -74,8 +81,17 @@ export default function ProductCarousel({
 
   return (
     <section className="w-full">
-      <div className="flex items-end justify-between mb-6 gap-4">
-        <h2 className="text-2xl small:text-3xl font-bold text-grey-90 tracking-tight">
+      <div
+        className={`flex items-end justify-between gap-4 ${
+          compact ? "mb-4" : "mb-6"
+        }`}
+      >
+        <h2
+          className={
+            titleClassName ??
+            "text-2xl small:text-3xl font-bold text-grey-90 tracking-tight"
+          }
+        >
           {title}
         </h2>
 
@@ -126,20 +142,25 @@ export default function ProductCarousel({
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 small:mx-0 small:px-0 pb-2"
+        className={`flex ${compact ? "gap-3" : "gap-4"} overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 small:mx-0 small:px-0 pb-2`}
       >
         {products.map((product) => (
           <div
             key={product.id}
             // Fractional widths keep a partial card visible at the right edge,
             // which is what signals the row scrolls.
-            className="snap-start shrink-0 w-[45%] small:w-[31%] medium:w-[23%]"
+            className={`snap-start shrink-0 ${
+              compact
+                ? "w-[148px] medium:w-[164px]"
+                : "w-[45%] small:w-[31%] medium:w-[23%]"
+            }`}
           >
             <ProductCard
               product={product}
               region={region}
               cartLineItems={cartLineItems}
               policy={policies ? policyForProduct(product as any, policies) : null}
+              compact={compact}
             />
           </div>
         ))}
