@@ -44,20 +44,13 @@ const STYLES: Record<
 const CommerceTypeBadge = ({ policy, size = "sm", className }: Props) => {
   if (!policy) return null
 
-  if (!policy.is_active) {
-    // An inactive listing is still whatever kind of listing it is.
-    //
-    // This used to render a bare "Unavailable", which answered the wrong
-    // question: a paused US pre-order and a sold-out shelf item looked
-    // identical, so the one fact a shopper most needs — that this is bought
-    // in from abroad and takes weeks — disappeared exactly when the listing
-    // was in the state most likely to prompt "when can I get it?".
-    //
-    // Standard stock keeps the plain wording; there is no type to preserve.
-    const kind =
-      policy.commerce_type === "standard"
-        ? null
-        : policy.label || STYLES[policy.commerce_type]?.label
+  // An inactive listing keeps its ordinary type badge. It used to read
+  // "Ships from the US — currently unavailable", which told shoppers that
+  // pre-orders as a whole were closed when only one offer was paused.
+  //
+  // Standard stock has no type to show, so it keeps the plain wording.
+  if (policy.commerce_type === "standard") {
+    if (policy.is_active) return null
 
     return (
       <span
@@ -67,12 +60,10 @@ const CommerceTypeBadge = ({ policy, size = "sm", className }: Props) => {
           className
         )}
       >
-        {kind ? `${kind} — currently unavailable` : "Unavailable"}
+        Unavailable
       </span>
     )
   }
-
-  if (policy.commerce_type === "standard") return null
 
   const style = STYLES[policy.commerce_type]
   if (!style) return null
