@@ -110,7 +110,7 @@ export default async function Home(props: Props) {
     },
     {
       title: "New in Technology",
-      href: "/store",
+      href: "/store/tech",
       products: techProducts,
       policies: techPolicies,
       panelClassName: "bg-grey-5 border-grey-15",

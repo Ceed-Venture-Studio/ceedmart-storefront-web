@@ -4,7 +4,7 @@
  *
  * H3 note: what was TECH_* (Solar + CCTV + Gadgets combined) is now split
  * into SOLAR_*, CCTV_*, and COMPUTER_* to match the four-card home page.
- * The old /store/tech route redirects to /store/solar-energy-power.
+ * /store/tech is the combined Technology page (see TECH_ROOT_CATEGORY_IDS).
  */
 
 export const WHOLEFOODS_COLLECTION_IDS = [
