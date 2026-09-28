@@ -121,14 +121,17 @@ export default function ProductCard({
     (product.options?.length ?? 0) > 0 && (product.variants?.length ?? 0) > 1
   const isValidVariant = !!selectedVariant
   // Stock on the shelf in Nigeria has already made the trip, so a pre-order
-  // listing that holds real inventory is not shown as "Ships from the US".
-  // Checked against tracked quantity rather than `inStock`, which is also
-  // true for backorderable variants that have nothing on hand.
+  // listing that holds real inventory reads "Shipped from the US" rather
+  // than promising a shipment still to come. Checked against tracked
+  // quantity rather than `inStock`, which is also true for backorderable
+  // variants that have nothing on hand.
   const hasStockOnHand = (
     selectedVariant ? [selectedVariant] : product.variants ?? []
   ).some((v) => v.manage_inventory && (v.inventory_quantity ?? 0) > 0)
   const shownPolicy =
-    policy?.commerce_type === "preorder" && hasStockOnHand ? null : policy
+    policy?.commerce_type === "preorder" && hasStockOnHand
+      ? { ...policy, label: "Shipped from the US" }
+      : policy
 
   // Compact cards have no room for option pickers, so a product that needs
   // one sends the shopper to its page to choose instead.

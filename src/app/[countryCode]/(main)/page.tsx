@@ -88,20 +88,11 @@ export default async function Home(props: Props) {
     )
   )
 
-  // Technology's pre-order listings are mostly stock that has already
-  // landed, so "Ships from the US" is dropped from this panel. Other types
-  // (built to order, auction) still show.
-  const techPolicies = Object.fromEntries(
-    Object.entries(railPolicies).filter(
-      ([, policy]) => policy.commerce_type !== "preorder"
-    )
-  )
-
   // Side by side from `small` up. Each panel takes its share of the row, so
   // when one range has no new stock the other fills the width alone.
   const newStockPanels = [
     {
-      title: "New in Whole Foods",
+      title: "New in Whole Foods & Groceries",
       href: "/store/wholefoods",
       products: wholefoodsProducts,
       policies: railPolicies,
@@ -109,10 +100,10 @@ export default async function Home(props: Props) {
       titleClassName: "text-lg small:text-xl font-bold text-wholefoods-dark",
     },
     {
-      title: "New in Technology",
+      title: "New in Technology & Gadgets",
       href: "/store/tech",
       products: techProducts,
-      policies: techPolicies,
+      policies: railPolicies,
       panelClassName: "bg-grey-5 border-grey-15",
       titleClassName: "text-lg small:text-xl font-bold text-ceedmart-navy",
     },
