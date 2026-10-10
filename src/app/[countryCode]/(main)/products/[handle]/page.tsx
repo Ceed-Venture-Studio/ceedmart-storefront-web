@@ -119,11 +119,13 @@ export default async function ProductPage(props: Props) {
     queryParams: { handle: params.handle },
   }).then(({ response }) => response.products[0])
 
-  const images = getImagesForVariant(pricedProduct, selectedVariantId)
-
+  // Checked before anything reads the product: a product that is not sold
+  // in the visitor's location comes back empty here.
   if (!pricedProduct) {
     notFound()
   }
+
+  const images = getImagesForVariant(pricedProduct, selectedVariantId)
 
   // Pre-order disclosure (BRD §6.3). Resolved server-side so the delivery
   // estimate and cost inclusions are in the initial HTML — a shopper must

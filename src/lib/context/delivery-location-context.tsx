@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
+import { useRouter } from "next/navigation"
 
 import {
   DELIVERY_LOCATION_COOKIE,
@@ -46,6 +47,7 @@ export const DeliveryLocationProvider = ({
 }: {
   children: React.ReactNode
 }) => {
+  const router = useRouter()
   const [location, setLocationState] = useState<DeliveryLocation | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -67,7 +69,10 @@ export const DeliveryLocationProvider = ({
       next.id
     )}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`
     setIsPickerOpen(false)
-  }, [])
+    // Product listings are scoped to the location on the server, so re-render
+    // with the new cookie rather than keep showing the old location's items.
+    router.refresh()
+  }, [router])
 
   const value = useMemo(
     () => ({

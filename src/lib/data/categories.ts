@@ -1,6 +1,7 @@
 import { sdk } from "@lib/config"
 import { HttpTypes } from "@medusajs/types"
 import { getGlobalCacheOptions } from "./cookies"
+import { getCatalogSalesChannelId } from "./web-locations"
 
 // Deliberately does NOT expand `*products`. Doing so inlines every product of
 // every category: measured at 5.39 MB / 2.3s for the unfiltered call, versus
@@ -77,10 +78,18 @@ export const getCategoryProductCounts = async (): Promise<
     revalidate: 60,
   }
 
+  // Counted in the visitor's location, so a category whose products are
+  // all off sale there does not look populated.
+  const salesChannelId = await getCatalogSalesChannelId()
+
   const { products } = await sdk.client.fetch<{
     products: { id: string; categories?: { id: string }[] | null }[]
   }>("/store/products", {
-    query: { limit: 1000, fields: "id,categories.id" },
+    query: {
+      limit: 1000,
+      fields: "id,categories.id",
+      ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
+    },
     next,
   })
 

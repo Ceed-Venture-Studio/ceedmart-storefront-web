@@ -15,6 +15,7 @@ import {
   setCartId,
 } from "./cookies"
 import { getRegion } from "./regions"
+import { getCartSalesChannelId } from "./web-locations"
 import { getLocale } from "@lib/data/locale-actions"
 import { mergeCeedmartMetadata, readCartCeedmart } from "./ceedmart-metadata"
 import { saveCustomerAddressIfNew } from "./customer"
@@ -102,8 +103,13 @@ export async function getOrSetCart(countryCode: string) {
 
   if (!cart) {
     const locale = await getLocale()
+    const salesChannelId = await getCartSalesChannelId()
     const cartResp = await sdk.store.cart.create(
-      { region_id: region.id, locale: locale || undefined },
+      {
+        region_id: region.id,
+        locale: locale || undefined,
+        ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
+      },
       {},
       headers
     )

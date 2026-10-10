@@ -6,6 +6,7 @@ import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { getAuthHeaders, getGlobalCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
+import { getCatalogSalesChannelId } from "./web-locations"
 
 export const listProducts = async ({
   pageParam = 1,
@@ -49,6 +50,10 @@ export const listProducts = async ({
     ...(await getAuthHeaders()),
   }
 
+  // The visitor's chosen location decides which catalog is listed. Part of
+  // the query, so each location gets its own cache entry.
+  const salesChannelId = await getCatalogSalesChannelId()
+
   // Global cache tag (shared across all visitors) + 60s revalidation as a
   // safety net in case the backend's on-demand revalidate webhook ever fails.
   const next = {
@@ -67,6 +72,7 @@ export const listProducts = async ({
           region_id: region?.id,
           fields:
             "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,",
+          ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
           ...queryParams,
         },
         headers,
