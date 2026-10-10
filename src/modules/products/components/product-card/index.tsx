@@ -176,6 +176,10 @@ export default function ProductCard({
     displayedPrice.original_price_number >
       displayedPrice.calculated_price_number
 
+  // Same rule as the struck-through price below, so the two always agree.
+  // Rounded to a whole percent; a discount that rounds to 0 gets no badge.
+  const salePercent = onSale ? Number(displayedPrice?.percentage_diff) : 0
+
   // Carries the chosen delivery city into the message so WhatsApp orders
   // arrive with a location, same as checkout orders.
   const preorderUrl = useMemo(() => {
@@ -282,6 +286,17 @@ export default function ProductCard({
             policy={shownPolicy}
             className="absolute top-2 left-2 z-10 shadow-sm"
           />
+        )}
+        {salePercent >= 1 && (
+          <span
+            data-testid="sale-badge"
+            className={clx(
+              "absolute top-2 right-2 z-10 inline-flex items-center rounded-full bg-rose-600 text-white font-bold shadow-sm",
+              compact ? "text-[11px] px-2 py-0.5" : "text-xs px-2.5 py-1"
+            )}
+          >
+            -{salePercent}%
+          </span>
         )}
         <Thumbnail
           thumbnail={product.thumbnail}
