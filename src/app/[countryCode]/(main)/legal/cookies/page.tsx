@@ -180,8 +180,8 @@ export default function Cookies() {
       <UL>
         <li>Changing your browser settings to block or delete cookies</li>
         <li>
-          Using any cookie consent tools we provide to opt out of certain
-          categories of cookies
+          Using cookie consent tools or banners we provide to opt out of
+          certain categories of cookies
         </li>
         <li>Visiting the third parties’ opt-out pages</li>
       </UL>
@@ -200,9 +200,8 @@ export default function Cookies() {
 
       <H2>Managing Cookies</H2>
       <P>
-        Before we set any non-essential cookies, such as analytics or
-        advertising cookies, we will provide a cookie banner or pop-up allowing
-        you to accept or reject them. While we do not
+        Where required by law, we will provide a cookie banner or pop-up
+        allowing you to accept or reject non-essential cookies. While we do not
         respond to “Do Not Track” signals at this time, you can manage ad
         preferences on your device settings.
       </P>
