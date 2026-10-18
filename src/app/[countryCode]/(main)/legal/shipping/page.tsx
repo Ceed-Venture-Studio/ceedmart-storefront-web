@@ -9,8 +9,8 @@ import LegalPage, {
   UL,
 } from "@modules/legal/templates/legal-page"
 
-// Text follows "Ceedmart Legal Documents" (revision of October 18, 2026)
-// verbatim. Change the wording only from a revised source document.
+// The approved legal text (October 18, 2026 revision). Change the wording
+// only from a revised source document.
 
 export const metadata: Metadata = {
   title: "Shipping Policy | CeedMart",
@@ -114,13 +114,14 @@ export default function Shipping() {
       </P>
       <UL>
         <li>
-          <strong>Lagos Metropolitan Area:</strong> 1–3 Business Days
+          <strong>Port Harcourt:</strong> Same day where available, otherwise
+          the next Business Day
         </li>
         <li>
-          <strong>
-            Major Regional Hubs (e.g., Abuja, Port Harcourt, Kano, Ibadan,
-            Enugu):
-          </strong>{" "}
+          <strong>Uyo and Lagos:</strong> Next Business Day
+        </li>
+        <li>
+          <strong>Major Regional Hubs (e.g., Abuja, Kano, Ibadan, Enugu):</strong>{" "}
           3–5 Business Days
         </li>
         <li>
@@ -134,6 +135,12 @@ export default function Shipping() {
           <strong>Fee Calculation:</strong> Standard delivery fees are
           calculated based on deadweight, volumetric dimensions
           (Length×Width×Height), and the specific delivery zone.
+        </li>
+        <li>
+          <strong>Free Delivery:</strong> Standard delivery is free for orders
+          of ₦30,000 or more (before delivery fees) delivered within Port
+          Harcourt, Uyo, or Lagos. This does not apply to bulk/tonnage orders,
+          whose freight is quoted under the next paragraph.
         </li>
         <li>
           <strong>Bulk/Wholesale Logistics:</strong> Shipping fees calculated

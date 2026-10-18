@@ -8,9 +8,8 @@ import LegalPage, {
   UL,
 } from "@modules/legal/templates/legal-page"
 
-// Text follows "Ceedmart Legal Documents" (revision of October 18, 2026)
-// verbatim. Change the wording only from a revised source document.
-// Section numbering is the document's own; it has no section 3.
+// The approved legal text (October 18, 2026 revision). Change the wording
+// only from a revised source document.
 
 export const metadata: Metadata = {
   title: "Refund Policy | CeedMart",
@@ -79,6 +78,8 @@ export default function Refund() {
         verification, logistics review, inventory validation, and approval by
         our team.
       </P>
+
+      <H2>3. Return Conditions and Exclusions</H2>
 
       <H3>Conditions for Returns</H3>
       <P>To qualify for a return, the customer must:</P>

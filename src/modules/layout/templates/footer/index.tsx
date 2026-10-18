@@ -110,7 +110,7 @@ export default async function Footer() {
             <p className="text-ui-fg-subtle text-sm leading-relaxed">
               Quality products at great prices — whole foods, electronics,
               solar systems, patio furniture and more. Fast delivery in
-              Lagos & Port Harcourt.
+              Port Harcourt, Uyo & Lagos.
             </p>
 
             <div className="flex flex-col gap-2 mt-2 text-sm text-ui-fg-subtle">
@@ -297,7 +297,7 @@ export default async function Footer() {
             © {new Date().getFullYear()} CeedMart. All rights reserved.
           </Text>
           <div className="text-xs text-grey-50">
-            Free delivery in Lagos & Port Harcourt · ₦30,000 minimum order
+            Free delivery in Port Harcourt, Uyo & Lagos on orders over ₦30,000
           </div>
         </div>
       </div>

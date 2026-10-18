@@ -7,8 +7,8 @@ import LegalPage, {
   UL,
 } from "@modules/legal/templates/legal-page"
 
-// Text follows "Ceedmart Legal Documents" (revision of October 18, 2026)
-// verbatim. Change the wording only from a revised source document.
+// The approved legal text (October 18, 2026 revision). Change the wording
+// only from a revised source document.
 
 export const metadata: Metadata = {
   title: "Privacy Policy | CeedMart",
@@ -261,14 +261,14 @@ export default function Privacy() {
 
       <H2>8. Personal Data From Minors</H2>
       <P>
-        We do not knowingly solicit data from, or market to children under 18
+        We do not knowingly solicit data from, or market to children under 13
         years of age. By using the Services, you represent that you are at
-        least 18 or that you are the parent or guardian of such a minor and
-        consent to such minor dependent’s use of our services. If we learn that
-        personal information from users less than 18 years of age has been
+        least 13 years of age and, if you are under 18, that your parent or
+        guardian consents to your use of our services. If we learn that
+        personal information from users less than 13 years of age has been
         collected, we will deactivate the account and take reasonable measures
         to promptly delete such data from our records. If you become aware of
-        any data we may have collected from children under age 18, please
+        any data we may have collected from children under age 13, please
         contact us at <Mail />
       </P>
 

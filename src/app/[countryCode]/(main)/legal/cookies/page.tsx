@@ -8,8 +8,8 @@ import LegalPage, {
   UL,
 } from "@modules/legal/templates/legal-page"
 
-// Text follows "Ceedmart Legal Documents" (revision of October 18, 2026)
-// verbatim. Change the wording only from a revised source document.
+// The approved legal text (October 18, 2026 revision). Change the wording
+// only from a revised source document.
 
 export const metadata: Metadata = {
   title: "Cookie Policy | CeedMart",
@@ -180,8 +180,8 @@ export default function Cookies() {
       <UL>
         <li>Changing your browser settings to block or delete cookies</li>
         <li>
-          Using cookie consent tools or banners we provide to opt out of
-          certain categories of cookies
+          Using any cookie consent tools we provide to opt out of certain
+          categories of cookies
         </li>
         <li>Visiting the third parties’ opt-out pages</li>
       </UL>
@@ -200,8 +200,9 @@ export default function Cookies() {
 
       <H2>Managing Cookies</H2>
       <P>
-        Where required by law, we will provide a cookie banner or pop-up
-        allowing you to accept or reject non-essential cookies. While we do not
+        Before we set any non-essential cookies, such as analytics or
+        advertising cookies, we will provide a cookie banner or pop-up allowing
+        you to accept or reject them. While we do not
         respond to “Do Not Track” signals at this time, you can manage ad
         preferences on your device settings.
       </P>
@@ -218,8 +219,8 @@ export default function Cookies() {
         jurisdictions where the age of consent may be higher. We do not
         knowingly collect, store, or use personal information from children via
         cookies, tracking technologies, or other data collection methods. Our
-        platforms are designed for adults and businesses, and we do not target
-        or promote our services to children.
+        platforms are designed for users aged 13 and above and for businesses,
+        and we do not target or promote our services to children under 13.
       </P>
       <P>
         If we become aware that we have inadvertently collected personal data

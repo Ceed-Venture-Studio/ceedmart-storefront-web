@@ -8,8 +8,8 @@ import LegalPage, {
   UL,
 } from "@modules/legal/templates/legal-page"
 
-// Text follows "Ceedmart Legal Documents" (revision of October 18, 2026)
-// verbatim. Change the wording only from a revised source document.
+// The approved legal text (October 18, 2026 revision). Change the wording
+// only from a revised source document.
 
 export const metadata: Metadata = {
   title: "Terms of Use | CeedMart",
@@ -52,11 +52,16 @@ export default function Terms() {
 
       <H2>Website Access</H2>
       <P>
-        This Site is intended for users who are at least 18 years old, and
-        beyond. By using our Site, you represent that;
+        This Site is intended for users who are at least 13 years old. Users
+        under 18 may only use the Site and place orders with the consent and
+        supervision of a parent or guardian. By using our Site, you represent
+        that;
       </P>
       <UL>
-        <li>You are 18 years old and above,</li>
+        <li>
+          You are 13 years old and above and, if you are under 18, you have
+          the consent of your parent or guardian,
+        </li>
         <li>
           All registration information you submit are true, accurate, and
           complete,
@@ -246,21 +251,20 @@ export default function Terms() {
         (“Dispute”) related to these Terms or your use of our Services through
         good-faith informal negotiations. These negotiations will begin upon
         written notice from one party to the other and must continue for at
-        least thirty (30) days before either party may initiate arbitration or
-        court proceedings.
+        least thirty (30) days before either party may initiate arbitration.
       </P>
-      <H3>Arbitration or Court Proceedings</H3>
+      <H3>Arbitration</H3>
       <P>
         If the Parties are unable to resolve the Dispute informally, the
-        Dispute shall be resolved through{" "}
-        <strong>binding arbitration or court proceedings</strong> in Nigeria,
-        and the Dispute shall be submitted to arbitration under the rules of
-        the Lagos Court of Arbitration, and the language shall be English.
+        Dispute shall be submitted to <strong>arbitration</strong> in Nigeria
+        under the rules of the Lagos Court of Arbitration, and the language
+        shall be English.
       </P>
+      <H3>Court Proceedings</H3>
       <P>
-        Where Arbitration doesn’t prove to be effective after ninety (90) days,
-        both parties shall have recourse to a court of competent jurisdiction
-        in Nigeria.
+        Where the Dispute has not been resolved by arbitration within ninety
+        (90) days of its submission, either party shall have recourse to a
+        court of competent jurisdiction in Nigeria.
       </P>
 
       <H2>Limitation of Liability</H2>
