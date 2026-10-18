@@ -1,6 +1,8 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
-const LEGAL_LINKS = [
+// The one list of policy pages — the footer, the mobile menu and each
+// policy page's cross-links all render from it.
+export const LEGAL_LINKS = [
   { href: "/legal/privacy", label: "Privacy Policy" },
   { href: "/legal/terms", label: "Terms of Use" },
   { href: "/legal/refund", label: "Refund Policy" },
@@ -10,7 +12,7 @@ const LEGAL_LINKS = [
 
 export default function LegalPage({
   title,
-  effectiveDate = "May 29, 2026",
+  effectiveDate = "October 18, 2026",
   children,
 }: {
   title: string
@@ -104,8 +106,8 @@ export const ContactBlock = () => (
       </a>
     </p>
     <p>
-      Address: Opposite Unity Oil and Gas, Chief G.U Ake Road, Eliozu, Port
-      Harcourt.
+      Address: Opposite Unity Oil and Gas, Chief G.U Ake road, Eliozu road,
+      Port Harcourt.
     </p>
     <p>
       Website:{" "}
@@ -117,4 +119,55 @@ export const ContactBlock = () => (
       </a>
     </p>
   </address>
+)
+
+export const Mail = () => (
+  <a href="mailto:hello@ceedmart.com" className="text-ceedmart-navy hover:underline">
+    hello@ceedmart.com
+  </a>
+)
+
+export const PolicyLink = ({
+  href,
+  children,
+}: {
+  href: string
+  children: React.ReactNode
+}) => (
+  <LocalizedClientLink href={href} className="text-ceedmart-navy hover:underline">
+    {children}
+  </LocalizedClientLink>
+)
+
+export const Table = ({
+  head,
+  rows,
+}: {
+  head: string[]
+  rows: React.ReactNode[][]
+}) => (
+  <div className="overflow-x-auto mb-2">
+    <table className="min-w-full text-sm border-collapse">
+      <thead>
+        <tr className="border-b border-grey-20 bg-grey-5">
+          {head.map((h) => (
+            <th key={h} className="text-left font-semibold text-ui-fg-base px-3 py-2">
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r, i) => (
+          <tr key={i} className="border-b border-grey-10">
+            {r.map((c, j) => (
+              <td key={j} className="px-3 py-2">
+                {c}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 )

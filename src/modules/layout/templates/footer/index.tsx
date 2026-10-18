@@ -5,6 +5,7 @@ import { listCollections } from "@lib/data/collections"
 import { Text } from "@medusajs/ui"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { LEGAL_LINKS } from "@modules/legal/templates/legal-page"
 
 const WHATSAPP_NUMBER = "2347087502195"
 const WHATSAPP_DISPLAY = "+234 708 750 2195"
@@ -239,21 +240,11 @@ export default async function Footer() {
           {/* Legal */}
           <div className="col-span-6 md:col-span-2">
             <Column title="Legal">
-              <li>
-                <FooterLink href="/legal/privacy">Privacy Policy</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/legal/terms">Terms of Use</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/legal/refund">Refund Policy</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/legal/shipping">Shipping Policy</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/legal/cookies">Cookie Policy</FooterLink>
-              </li>
+              {LEGAL_LINKS.map((l) => (
+                <li key={l.href}>
+                  <FooterLink href={l.href}>{l.label}</FooterLink>
+                </li>
+              ))}
             </Column>
           </div>
 

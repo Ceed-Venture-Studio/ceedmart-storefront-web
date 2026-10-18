@@ -6,6 +6,7 @@ import { Text, clx, useToggleState } from "@medusajs/ui"
 import { Fragment, useState } from "react"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { LEGAL_LINKS } from "@modules/legal/templates/legal-page"
 import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { HttpTypes } from "@medusajs/types"
@@ -220,6 +221,21 @@ const SideMenu = ({
                           )}
                         />
                       </div>
+                      {/* The footer is hidden on mobile, so this is the
+                          only way to reach the policies on a phone. */}
+                      <ul className="flex flex-wrap gap-x-4 gap-y-1 txt-compact-small text-ui-fg-subtle">
+                        {LEGAL_LINKS.map((l) => (
+                          <li key={l.href}>
+                            <LocalizedClientLink
+                              href={l.href}
+                              onClick={close}
+                              className="hover:text-ui-fg-base"
+                            >
+                              {l.label}
+                            </LocalizedClientLink>
+                          </li>
+                        ))}
+                      </ul>
                       <Text className="flex justify-between txt-compact-small">
                         © {new Date().getFullYear()} CeedMart. All rights
                         reserved.
