@@ -111,6 +111,16 @@ export default async function Home(props: Props) {
 
   return (
     <div className="w-full flex flex-col">
+      {/* Campaign hero from admin → Banners, above the bulk hero rather than
+          instead of it, so the search bar and service promises stay. Each
+          renders nothing when its slot has no active banner. */}
+      <BannerSlot slot="home_hero_mobile" priority className="small:hidden" />
+      <BannerSlot
+        slot="home_hero_desktop"
+        priority
+        className="hidden small:block"
+      />
+
       <BulkHero />
 
       <div className="content-container flex flex-col gap-14 small:gap-20 py-12 small:py-20">
