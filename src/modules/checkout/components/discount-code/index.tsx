@@ -22,19 +22,22 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
 
   const { promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
+    setErrorMessage("")
+
     const validPromotions = promotions.filter(
       (promotion) => promotion.code !== code
     )
 
-    await applyPromotions(
+    const { error } = await applyPromotions(
       validPromotions.filter((p) => p.code !== undefined).map((p) => p.code!)
     )
+    if (error) setErrorMessage(error)
   }
 
   const addPromotionCode = async (formData: FormData) => {
     setErrorMessage("")
 
-    const code = formData.get("code")
+    const code = formData.get("code")?.toString().trim()
     if (!code) {
       return
     }
@@ -42,13 +45,10 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
     const codes = promotions
       .filter((p) => p.code !== undefined)
       .map((p) => p.code!)
-    codes.push(code.toString())
+    codes.push(code)
 
-    try {
-      await applyPromotions(codes)
-    } catch (e: any) {
-      setErrorMessage(e.message)
-    }
+    const { error } = await applyPromotions(codes)
+    if (error) setErrorMessage(error)
 
     if (input) {
       input.value = ""

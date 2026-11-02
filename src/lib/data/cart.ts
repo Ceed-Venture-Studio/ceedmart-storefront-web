@@ -316,27 +316,47 @@ export async function initiatePaymentSession(
     .catch(medusaError)
 }
 
-export async function applyPromotions(codes: string[]) {
+// Returns the failure instead of throwing it: Next.js replaces the message
+// of anything a server action throws with a generic "An error occurred in
+// the Server Components render" in production, so a shopper with a mistyped
+// code would never learn why it was refused.
+export async function applyPromotions(
+  codes: string[]
+): Promise<{ error?: string }> {
   const cartId = await getCartId()
 
   if (!cartId) {
-    throw new Error("No existing cart found")
+    return { error: "No existing cart found" }
   }
 
   const headers = {
     ...(await getAuthHeaders()),
   }
 
-  return sdk.store.cart
-    .update(cartId, { promo_codes: codes }, {}, headers)
-    .then(async () => {
-      const cartCacheTag = await getCacheTag("carts")
-      revalidateTag(cartCacheTag)
+  // Medusa matches codes exactly, so a space picked up when pasting a code
+  // makes a valid one "invalid".
+  const promoCodes = codes.map((code) => code.trim()).filter(Boolean)
 
-      const fulfillmentCacheTag = await getCacheTag("fulfillment")
-      revalidateTag(fulfillmentCacheTag)
-    })
-    .catch(medusaError)
+  try {
+    await sdk.store.cart
+      .update(cartId, { promo_codes: promoCodes }, {}, headers)
+      .catch(medusaError)
+  } catch (e: any) {
+    return {
+      error: String(e?.message ?? "Could not apply the promotion code").replace(
+        /^Error setting up the request: /,
+        ""
+      ),
+    }
+  }
+
+  const cartCacheTag = await getCacheTag("carts")
+  revalidateTag(cartCacheTag)
+
+  const fulfillmentCacheTag = await getCacheTag("fulfillment")
+  revalidateTag(fulfillmentCacheTag)
+
+  return {}
 }
 
 export async function applyGiftCard(code: string) {
@@ -387,11 +407,8 @@ export async function submitPromotionForm(
   formData: FormData
 ) {
   const code = formData.get("code") as string
-  try {
-    await applyPromotions([code])
-  } catch (e: any) {
-    return e.message
-  }
+  const { error } = await applyPromotions([code])
+  return error
 }
 
 // TODO: Pass a POJO instead of a form entity here
