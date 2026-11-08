@@ -15,6 +15,7 @@ import {
   DeliveryLocation,
   getLocationById,
 } from "@lib/data/delivery-locations"
+import { syncCartLocation } from "@lib/data/cart"
 
 type DeliveryLocationContextValue = {
   location: DeliveryLocation | null
@@ -71,7 +72,10 @@ export const DeliveryLocationProvider = ({
     setIsPickerOpen(false)
     // Product listings are scoped to the location on the server, so re-render
     // with the new cookie rather than keep showing the old location's items.
-    router.refresh()
+    // The cart is re-priced for the new city first, so the refresh shows it.
+    syncCartLocation()
+      .catch(() => {})
+      .finally(() => router.refresh())
   }, [router])
 
   const value = useMemo(

@@ -17,6 +17,8 @@ type MobileActionsProps = {
   options: Record<string, string | undefined>
   updateOptions: (title: string, value: string) => void
   inStock?: boolean
+  /** Set when the variant is listed but not sold in the chosen location. */
+  unavailableLabel?: string
   handleAddToCart: () => void
   isAdding?: boolean
   show: boolean
@@ -29,6 +31,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   options,
   updateOptions,
   inStock,
+  unavailableLabel,
   handleAddToCart,
   isAdding,
   show,
@@ -124,6 +127,8 @@ const MobileActions: React.FC<MobileActionsProps> = ({
               >
                 {!variant
                   ? "Select variant"
+                  : unavailableLabel
+                  ? unavailableLabel
                   : !inStock
                   ? "Out of stock"
                   : "Add to cart"}

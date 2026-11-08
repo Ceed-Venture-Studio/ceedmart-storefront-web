@@ -13,6 +13,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Spinner from "@modules/common/icons/spinner"
 import Thumbnail from "@modules/products/components/thumbnail"
 import { useState } from "react"
+import { useDeliveryLocation } from "@lib/context/delivery-location-context"
 
 type ItemProps = {
   item: HttpTypes.StoreCartLineItem
@@ -24,6 +25,17 @@ type ItemProps = {
 const Item = ({ item, type = "full", layout, currencyCode }: ItemProps) => {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { location } = useDeliveryLocation()
+
+  // The backend marks a line it will refuse at checkout because the item is
+  // not sold in the cart's location — typically after switching city.
+  const notAvailableHere = (item as any).available_here === false
+  const notAvailableNote = notAvailableHere ? (
+    <Text className="txt-small text-rose-600" data-testid="item-not-available">
+      Not available in {location?.name ?? "your location"} — remove it to
+      check out.
+    </Text>
+  ) : null
 
   const changeQuantity = async (quantity: number) => {
     setError(null)
@@ -81,6 +93,7 @@ const Item = ({ item, type = "full", layout, currencyCode }: ItemProps) => {
             variant={item.variant}
             data-testid="product-variant"
           />
+          {notAvailableNote}
 
           <div className="flex items-center justify-between mt-auto pt-1">
             <div className="flex items-center gap-1.5">
@@ -147,6 +160,7 @@ const Item = ({ item, type = "full", layout, currencyCode }: ItemProps) => {
           variant={item.variant}
           data-testid="product-variant"
         />
+        {notAvailableNote}
       </Table.Cell>
 
       {type === "full" && (

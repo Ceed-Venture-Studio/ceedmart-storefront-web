@@ -144,6 +144,11 @@ export default function ProductCard({
     return (selectedVariant.inventory_quantity ?? 0) > 0
   }, [selectedVariant])
 
+  // Listed in this city but not sold here (backend lib/location-catalog).
+  // Absent means available, so an older backend changes nothing.
+  const availableHere = (selectedVariant as any)?.available_here !== false
+  const canBuy = inStock && availableHere
+
   const currentLine = selectedVariant
     ? linesByVariant[selectedVariant.id]
     : undefined
@@ -192,7 +197,7 @@ export default function ProductCard({
   }, [product.title, selectedVariant, location])
 
   const handleAddToCart = () => {
-    if (!selectedVariant?.id || !inStock) return
+    if (!selectedVariant?.id || !canBuy) return
     const variantId = selectedVariant.id
     setLinesByVariant((prev) => ({
       ...prev,
@@ -266,9 +271,13 @@ export default function ProductCard({
   const addToCartLabel =
     hasOptions && !isValidVariant
       ? "Select options"
-      : !inStock
-        ? "Out of stock"
-        : "Add to cart"
+      : !availableHere
+        ? location
+          ? `Not available in ${location.name}`
+          : "Not available here"
+        : !inStock
+          ? "Out of stock"
+          : "Add to cart"
 
   return (
     <div
@@ -454,7 +463,7 @@ export default function ProductCard({
             <button
               type="button"
               onClick={handleAddToCart}
-              disabled={isPending || !isValidVariant || !inStock}
+              disabled={isPending || !isValidVariant || !canBuy}
               data-testid="add-to-cart-button"
               className={clx(
                 "inline-flex items-center justify-center w-full rounded-circle font-semibold transition-all",

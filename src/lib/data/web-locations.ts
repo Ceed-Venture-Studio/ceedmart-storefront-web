@@ -12,7 +12,7 @@ import { DELIVERY_LOCATION_COOKIE } from "./delivery-locations"
 
 type WebLocationMap = {
   default_sales_channel_id: string | null
-  locations: { id: string; sales_channel_id: string }[]
+  locations: { id: string; sales_channel_id: string; province?: string | null }[]
 }
 
 const getWebLocationMap = async (): Promise<WebLocationMap | null> => {
@@ -72,4 +72,23 @@ export const getCatalogSalesChannelId = async (): Promise<
 export const getCartSalesChannelId = async (): Promise<string | undefined> => {
   const map = await getWebLocationMap()
   return map?.default_sales_channel_id ?? undefined
+}
+
+/**
+ * The state (ISO 3166-2, "ng-la") of the visitor's chosen location, which
+ * the backend prices the cart for and checks availability against. Null
+ * when nothing is chosen or the backend does not map one — the cart is then
+ * priced nationally, as before.
+ */
+export const getChosenProvince = async (): Promise<string | null> => {
+  const map = await getWebLocationMap()
+  if (!map) return null
+  let locationId: string | undefined
+  try {
+    const cookies = await nextCookies()
+    locationId = cookies.get(DELIVERY_LOCATION_COOKIE)?.value
+  } catch {
+    return null
+  }
+  return map.locations.find((l) => l.id === locationId)?.province ?? null
 }

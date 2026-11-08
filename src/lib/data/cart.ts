@@ -15,7 +15,7 @@ import {
   setCartId,
 } from "./cookies"
 import { getRegion } from "./regions"
-import { getCartSalesChannelId } from "./web-locations"
+import { getCartSalesChannelId, getChosenProvince } from "./web-locations"
 import { getLocale } from "@lib/data/locale-actions"
 import { mergeCeedmartMetadata, readCartCeedmart } from "./ceedmart-metadata"
 import { saveCustomerAddressIfNew } from "./customer"
@@ -95,7 +95,8 @@ export async function getOrSetCart(countryCode: string) {
     throw new Error(`Region not found for country code: ${countryCode}`)
   }
 
-  let cart = await retrieveCart(undefined, "id,region_id")
+  // metadata is needed by the stamps below, which merge into it.
+  let cart = await retrieveCart(undefined, "id,region_id,metadata")
 
   const headers = {
     ...(await getAuthHeaders()),
@@ -104,11 +105,15 @@ export async function getOrSetCart(countryCode: string) {
   if (!cart) {
     const locale = await getLocale()
     const salesChannelId = await getCartSalesChannelId()
+    const province = await getChosenProvince()
     const cartResp = await sdk.store.cart.create(
       {
         region_id: region.id,
         locale: locale || undefined,
         ...(salesChannelId ? { sales_channel_id: salesChannelId } : {}),
+        ...(province
+          ? { metadata: mergeCeedmartMetadata(null, { province }) }
+          : {}),
       },
       {},
       headers
@@ -132,8 +137,47 @@ export async function getOrSetCart(countryCode: string) {
   // clicks a ref link after starting a cart still gets attributed —
   // provided the cart isn't already attributed to someone else.
   cart = await attachPartnerCodeIfPresent(cart, headers)
+  cart = await stampCartProvince(cart, headers)
 
   return cart
+}
+
+// Location pricing. The backend prices a cart, and checks what it may hold,
+// for metadata.ceedmart.province; carts stay on the default channel whatever
+// city is picked, so the choice has to travel on the cart. Updating it makes
+// the backend re-price every line for the new state.
+async function stampCartProvince(
+  cart: HttpTypes.StoreCart,
+  headers: Record<string, string>
+): Promise<HttpTypes.StoreCart> {
+  const province = await getChosenProvince()
+  if (!province || readCartCeedmart(cart).province === province) return cart
+
+  return sdk.store.cart
+    .update(
+      cart.id,
+      { metadata: mergeCeedmartMetadata(cart.metadata, { province }) },
+      {},
+      headers
+    )
+    .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
+    .catch(() => cart)
+}
+
+/**
+ * Called by the location picker after the cookie changes, so an existing
+ * cart is re-priced for the new city straight away rather than on the next
+ * add to cart.
+ */
+export async function syncCartLocation() {
+  const cart = await retrieveCart(undefined, "id,metadata")
+  if (!cart) return
+  const headers = { ...(await getAuthHeaders()) }
+  const updated = await stampCartProvince(cart, headers)
+  if (updated !== cart) {
+    revalidateTag(await getCacheTag("carts"))
+    revalidateTag(await getCacheTag("fulfillment"))
+  }
 }
 
 export async function updateCart(data: HttpTypes.StoreUpdateCart) {

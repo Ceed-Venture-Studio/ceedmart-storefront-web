@@ -118,6 +118,18 @@ export default function ProductDetailView({
 
   const { location } = useDeliveryLocation()
 
+  // Location availability (backend lib/location-catalog): an item can be
+  // listed in a city yet not sold there. The backend marks each variant;
+  // absent means available, so an older backend changes nothing.
+  const locationName = location?.name ?? (product as any).location?.name
+  const unavailableLabel = locationName
+    ? `Not available in ${locationName}`
+    : "Not available in your location"
+  const isAvailableHere = (variant?: HttpTypes.StoreProductVariant) =>
+    (variant as any)?.available_here !== false
+  const availableHere = isAvailableHere(selectedVariant)
+  const canBuy = inStock && availableHere
+
   const actionsRef = useRef<HTMLDivElement>(null)
   const inView = useIntersection(actionsRef, "0px")
 
@@ -148,7 +160,11 @@ export default function ProductDetailView({
   const addToCartLabel =
     !selectedVariant && !options
       ? "Select variant"
-      : !inStock || !isValidVariant
+      : !isValidVariant
+      ? "Out of stock"
+      : !availableHere
+      ? unavailableLabel
+      : !inStock
       ? "Out of stock"
       : "Add to cart"
 
@@ -197,6 +213,14 @@ export default function ProductDetailView({
                 <div className="flex flex-wrap gap-2">
                   {values.map((v) => {
                     const active = v === options[option.id]
+                    const variantForValue = product.variants?.find((pv) =>
+                      isEqual(optionsAsKeymap(pv.options), {
+                        ...options,
+                        [option.id]: v,
+                      })
+                    )
+                    const notHere =
+                      !!variantForValue && !isAvailableHere(variantForValue)
                     return (
                       <button
                         key={v}
@@ -216,6 +240,11 @@ export default function ProductDetailView({
                         <span className="text-sm font-semibold text-ui-fg-base">
                           {v}
                         </span>
+                        {notHere && (
+                          <span className="block text-xs text-ui-fg-muted">
+                            {unavailableLabel}
+                          </span>
+                        )}
                       </button>
                     )
                   })}
@@ -278,7 +307,11 @@ export default function ProductDetailView({
           {priceAvailable ? (
             <>
               <div className="text-sm">
-                {inStock ? (
+                {selectedVariant && !availableHere ? (
+                  <span className="text-rose-600 font-semibold">
+                    {unavailableLabel}
+                  </span>
+                ) : inStock ? (
                   <span className="text-green-600 font-semibold">
                     In Stock
                   </span>
@@ -336,7 +369,7 @@ export default function ProductDetailView({
               <Button
                 onClick={handleAddToCart}
                 disabled={
-                  !inStock ||
+                  !canBuy ||
                   !selectedVariant ||
                   !!disabled ||
                   isAdding ||
@@ -453,7 +486,8 @@ export default function ProductDetailView({
           variant={selectedVariant}
           options={options}
           updateOptions={setOptionValue}
-          inStock={inStock}
+          inStock={canBuy}
+          unavailableLabel={availableHere ? undefined : unavailableLabel}
           handleAddToCart={handleAddToCart}
           isAdding={isAdding}
           show={!inView}

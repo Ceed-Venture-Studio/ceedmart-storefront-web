@@ -13,6 +13,7 @@ import { HttpTypes } from "@medusajs/types"
 //   • categorization  — channel / store_id / fulfillment / sourcing, written
 //                       when the shopper picks pickup vs delivery
 //   • commerce        — commerce_type, terms_version_id (Phase 3)
+//   • location        — province, from the location picker
 //
 // Each writer knows only its own slice. Composing a fresh `ceedmart` object
 // and assigning it wholesale silently deletes the others. That is precisely
@@ -36,6 +37,9 @@ export type CeedmartMetadata = {
   partner_code?: string
   commerce_type?: CommerceType
   terms_version_id?: string
+  // State the cart is priced and sold for (ISO 3166-2, "ng-la"); written
+  // by the client when the shopper picks a location. See lib/locations.
+  province?: string
 }
 
 /** Patch shape for ceedmartMetadata merges: every field optional, and
